@@ -1,5 +1,5 @@
-#ifndef _DEVICE_STATUS
-#define _DEVICE_STATUS
+#ifndef _DEVICE_STATUS_H
+#define _DEVICE_STATUS_H
 
 #include <string.h>
 #include <linux/input.h>

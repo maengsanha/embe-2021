@@ -1,15 +1,28 @@
 CC			= arm-none-linux-gnueabi-gcc
 CFLAGS	= -static
-SOURCES	= main.c clock.c counter.c text_editor.c draw_board.c device_status.c
-TARGET	= test
-RM			= rm
+TARGET	= app
+OBJS		= main.o clock.o counter.o text_editor.o draw_board.o device_status.o
 
-all: build
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o app main.o clock.o counter.o text_editor.o draw_board.o device_status.o -lrt
 
-build:
-	@$(CC) $(CFLAGS) -g -o $(TARGET) $(SOURCES)
+main.o: main.c
+	$(CC) $(CFLAGS) -c -o main.o main.c -lrt
 
-test:
-	@gcc -g -o $(TARGET) $(SOURCES)
-	@./$(TARGET)
-	@$(RM) -f $(TARGET)
+clock.o: clock.c
+	$(CC) $(CFLAGS) -c -o clock.o clock.c -lrt
+
+counter.o: counter.c
+	$(CC) $(CFLAGS) -c -o counter.o counter.c -lrt
+
+text_editor.o: text_editor.c
+	$(CC) $(CFLAGS) -c -o text_editor.o text_editor.c -lrt
+
+draw_board.o: draw_board.c
+	$(CC) $(CFLAGS) -c -o draw_board.o draw_board.c -lrt
+
+device_status.o: device_status.c
+	$(CC) $(CFLAGS) -c -o device_status.o device_status.c -lrt
+
+clean:
+	rm -f $(OBJS) $(TARGET)

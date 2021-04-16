@@ -1,5 +1,5 @@
-#ifndef _CLOCK
-#define _CLOCK
+#ifndef _CLOCK_H
+#define _CLOCK_H
 
 #include <stdbool.h>
 #include <time.h>

@@ -1,5 +1,5 @@
-#ifndef _COUNTER
-#define _COUNTER
+#ifndef _COUNTER_H
+#define _COUNTER_H
 
 #include "device_status.h"
 
