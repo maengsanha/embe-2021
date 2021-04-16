@@ -156,7 +156,7 @@ int main() {
 
         // write to device
         write(fnd_fd, &status->fnd_val, 4);
-        write(text_lcd_fd, status->text_lcd_val, 32);
+        write(text_lcd_fd, &status->text_lcd_val, 32);
         write(dot_matrix_fd, status->dot_matrix_val, sizeof(status->dot_matrix_val));
         *led_addr = status->led_val;
 
