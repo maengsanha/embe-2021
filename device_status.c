@@ -14,8 +14,8 @@ void init_status(struct device_status *status, unsigned int mode) {
   status->mode = mode;
 
   // set states to zero values
-  memset(status->fnd_val, '0', 4);
-  memset(status->text_lcd_val, ' ', 32);
+  memset(status->fnd_val, 0x30, 4);
+  memset(status->text_lcd_val, 0x00, 32);
   memset(status->dot_matrix_val, 0x00, 10);
   status->led_val = 0x00;
 }
