@@ -39,33 +39,34 @@ int main() {
 
   // open devices
   if ((fnd_fd = open(FND_DEVICE, O_RDWR)) < 0) {
-    perror("open FND failed\n");
+    printf("open FND failed\n");
     close(fnd_fd);
     return 1;
   }
   if ((text_lcd_fd = open(TEXT_LCD_DEVICE, O_RDWR)) < 0) {
-    perror("open Text LCD failed\n");
+    printf("open Text LCD failed\n");
     close(fnd_fd);
     close(text_lcd_fd);
     return 1;
   }
   if ((dot_matrix_fd = open(DOT_MATRIX_DEVICE, O_RDWR)) < 0) {
-    perror("open Dot Matrix failed\n");
+    printf("open Dot Matrix failed\n");
     close(fnd_fd);
     close(text_lcd_fd);
     close(dot_matrix_fd);
     return 1;
   }
   if ((switch_fd = open(SWITCH_DEVICE, O_RDONLY)) < 0) {
-    perror("open Switch failed\n");
+    printf("open Switch failed\n");
     close(fnd_fd);
     close(text_lcd_fd);
     close(dot_matrix_fd);
     close(switch_fd);
     return 1;
   }
-  if ((readkey_fd = open(READKEY_DEVICE, O_RDONLY | O_NONBLOCK)) < 0) {
-    perror("open READ KEY failed\n");
+  // if ((readkey_fd = open(READKEY_DEVICE, O_RDONLY | O_NONBLOCK)) < 0) {
+  if ((readkey_fd = open(READKEY_DEVICE, O_RDONLY)) < 0) {
+    printf("open READ KEY failed\n");
     close(fnd_fd);
     close(text_lcd_fd);
     close(dot_matrix_fd);
@@ -74,7 +75,7 @@ int main() {
     return 1;
   }
   if ((led_fd = open(MEM_DEVICE, O_RDWR | O_SYNC)) < 0) {
-    perror("open LED failed\n");
+    printf("open LED failed\n");
     close(fnd_fd);
     close(text_lcd_fd);
     close(dot_matrix_fd);
@@ -85,7 +86,7 @@ int main() {
   }
 
   if ((fpga_addr = mmap(NULL, 0x1000, PROT_READ | PROT_WRITE, MAP_SHARED, led_fd, LED_BASE_ADDRESS)) == MAP_FAILED) {
-    perror("mmap failed\n");
+    printf("mmap failed\n");
     close(fnd_fd);
     close(text_lcd_fd);
     close(dot_matrix_fd);
@@ -100,13 +101,13 @@ int main() {
   // get shared memory
   int shm_id;
   if ((shm_id = shmget(IPC_PRIVATE, sizeof(struct device_status), IPC_CREAT | 0644)) == -1) {
-    perror("shmget failed\n");
+    printf("shmget failed\n");
     return 1;
   }
 
   pid_t input;
   if ((input = fork()) == -1) {
-    perror("fork failed\n");
+    printf("fork failed\n");
     return 1;
   } else if (input == 0) {
     ///////////////////////////// Input process /////////////////////////////
@@ -140,7 +141,7 @@ int main() {
   } else {
     pid_t output;
     if ((output = fork()) == -1) {
-      perror("fork failed\n");
+      printf("fork failed\n");
       return 1;
     } else if (output == 0) {
       ///////////////////////////// Output process /////////////////////////////
@@ -171,7 +172,8 @@ int main() {
       struct device_status *status = shmat(shm_id, NULL, 0);
 
       // the default mode of the device is Clock
-      init_status(status, CLOCK_MODE);
+      status->mode = CLOCK_MODE;
+      init_status(status);
 
       unsigned int current_mode = status->mode;
 
@@ -182,7 +184,7 @@ int main() {
         // if the mode has been changed, set device status to zero values
         if (current_mode != status->mode) {
           current_mode = status->mode;
-          init_status(status, status->mode);
+          init_status(status);
           printf("mode: %d\n", status->mode+1);
         }
 

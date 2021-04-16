@@ -40,6 +40,6 @@ void set_led_value(struct device_status *status, const unsigned long val);
  *
  * @status: device status to initialize
  */
-void init_status(struct device_status *status, unsigned int mode);
+void init_status(struct device_status *status);
 
 #endif

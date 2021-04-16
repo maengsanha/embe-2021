@@ -22,7 +22,7 @@ int main() {
 	char name[256]					= "Unknown";
 
 	char *device = "/dev/input/event0";
-	if ((fd = open(device, O_RDONLY | O_NONBLOCK)) == -1) {
+	if ((fd = open(device, O_RDONLY)) == -1) {
 		printf("%s is not a vaild device.\n", device);
 	}
 
