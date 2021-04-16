@@ -34,8 +34,8 @@ int main() {
       switch_fd,
       readkey_fd,
       led_fd;
-  unsigned long *fpga_addr,
-                *led_addr;
+  unsigned long *fpga_addr;
+  unsigned char *led_addr;
 
   // open devices
   if ((fnd_fd = open(FND_DEVICE, O_RDWR)) < 0) {
@@ -95,7 +95,7 @@ int main() {
     return 1;
   }
 
-  led_addr = (unsigned long *)((void *)fpga_addr+LED_OFFSET);
+  led_addr = (unsigned char *)((void *)fpga_addr+LED_OFFSET);
 
   // get shared memory
   int shm_id;
