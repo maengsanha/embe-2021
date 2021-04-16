@@ -4,6 +4,11 @@
 #include <string.h>
 #include <linux/input.h>
 
+#define VOL_PLUS          0x73
+#define VOL_MINUS         0x72
+#define BACK              0x9E
+#define KEY_RELEASE       0x00
+#define KEY_PRESS         0x01
 #define CLOCK_MODE        0
 #define COUNTER_MODE      1
 #define TEXT_EDITOR_MODE  2

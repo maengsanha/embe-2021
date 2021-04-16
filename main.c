@@ -13,19 +13,14 @@
 #include "text_editor.h"
 #include "draw_board.h"
 
-const char *FND_DEVICE              = "/dev/fpga_fnd";
-const char *TEXT_LCD_DEVICE         = "/dev/fpga_text_lcd";
-const char *DOT_MATRIX_DEVICE       = "/dev/fpga_dot";
-const char *SWITCH_DEVICE           = "/dev/fpga_push_switch";
-const char *READKEY_DEVICE          = "/dev/input/event0";
-const char *MEM_DEVICE              = "/dev/mem";
-const unsigned int LED_BASE_ADDRESS = 0x08000000;
-const unsigned int LED_OFFSET       = 0x16;
-const unsigned int VOL_PLUS         = 0x73;
-const unsigned int VOL_MINUS        = 0x72;
-const unsigned int BACK             = 0x9E;
-const unsigned int KEY_RELEASE      = 0x00;
-const unsigned int KEY_PRESS        = 0x01;
+#define FND_DEVICE        "/dev/fpga_fnd"
+#define TEXT_LCD_DEVICE   "/dev/fpga_text_lcd"
+#define DOT_MATRIX_DEVICE "/dev/fpga_dot"
+#define SWITCH_DEVICE     "/dev/fpga_push_switch"
+#define READKEY_DEVICE    "/dev/input/event0"
+#define MEM_DEVICE        "/dev/mem"
+#define LED_BASE_ADDRESS  0x08000000
+#define LED_OFFSET        0x16
 
 int main() {
   int fnd_fd,
@@ -120,8 +115,6 @@ int main() {
       read(readkey_fd, status->readkey_val, sizeof(status->readkey_val));
       read(switch_fd, &status->switch_val, sizeof(status->switch_val));
       
-      // set status
-      
       // if BACK key was pressed, end program
       if (status->readkey_val[0].code == BACK && status->readkey_val[0].value == KEY_PRESS) break;
 
@@ -132,7 +125,7 @@ int main() {
         status->mode = (status->mode + 3) % 4;
       }
       
-      usleep(500000);
+      // usleep(500000);
     }
 
     // detach from shared memory
@@ -159,7 +152,7 @@ int main() {
         write(dot_matrix_fd, status->dot_matrix_val, sizeof(status->dot_matrix_val));
         *led_addr = status->led_val;
 
-        usleep(500000);
+        // usleep(500000);
       }
 
       // detach from shared memory
@@ -190,24 +183,28 @@ int main() {
 
         // set status
         switch (status->mode) {
-        case 0:
-          // clock(status);
+        case CLOCK_MODE:
+          handle_clock(status);
           break;
-        case 1:
-          // counter(status);
+        case COUNTER_MODE:
+          handle_counter(status);
           break;
-        case 2:
-          // text_editor(status);
+        case TEXT_EDITOR_MODE:
+          handle_text_editor(status);
           break;
-        case 3:
-          // draw_board(status);
+        case DRAW_BOARD_MODE:
+          handle_draw_board(status);
           break;
-        default:  // no such case
+        default:
+          // no such case
           break;
         }
 
-        usleep(500000);
+        // usleep(500000);
       }
+
+      // reinitialize device when program ends
+      init_status(status);
       
       // detach from shared memory
       shmdt(status);
