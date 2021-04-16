@@ -1,14 +1,12 @@
-#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <signal.h>
+#include <sys/types.h>
 #include <sys/shm.h>
-#include <sys/stat.h>
 #include <sys/wait.h>
 #include <sys/mman.h>
-#include <sys/types.h>
-#include <sys/ioctl.h>
 
 #include "clock.h"
 #include "counter.h"
@@ -97,7 +95,7 @@ int main() {
     return 1;
   }
 
-  led_addr = (unsigned char *)((void *)fpga_addr+LED_OFFSET);
+  led_addr = (unsigned long *)((void *)fpga_addr+LED_OFFSET);
 
   // get shared memory
   int shm_id;
@@ -176,7 +174,7 @@ int main() {
       init_status(status, CLOCK_MODE);
 
       unsigned int current_mode = status->mode;
-      
+
       for (;;) {
         // if BACK key was pressed, end program
         if (status->readkey_val[0].code == BACK) break;
@@ -185,24 +183,25 @@ int main() {
         if (current_mode != status->mode) {
           current_mode = status->mode;
           init_status(status, status->mode);
+          printf("mode: %d\n", status->mode+1);
         }
 
         // set status
         switch (status->mode) {
-          case CLOCK_MODE:
-            clock(status);
-            break;
-          case COUNTER_MODE:
-            counter(status);
-            break;
-          case TEXT_EDITOR_MODE:
-            text_editor(status);
-            break;
-          case DRAW_BOARD_MODE:
-            draw_board(status);
-            break;
-          default:  // no such case
-            break;
+        case 0:
+          // clock(status);
+          break;
+        case 1:
+          // counter(status);
+          break;
+        case 2:
+          // text_editor(status);
+          break;
+        case 3:
+          // draw_board(status);
+          break;
+        default:  // no such case
+          break;
         }
 
         // usleep(400000);
