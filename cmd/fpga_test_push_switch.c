@@ -20,7 +20,7 @@ void user_signal1(int sig)
 	quit = 1;
 }
 
-int main(void)
+int main()
 {
 	int i;
 	int dev;

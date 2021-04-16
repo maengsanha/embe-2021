@@ -1,7 +1,7 @@
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <signal.h>
 #include <sys/shm.h>
 #include <sys/stat.h>
@@ -9,24 +9,32 @@
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
-#include <linux/input.h>
 
-#include "device_status.h"
+#include "clock.h"
+#include "counter.h"
+#include "text_editor.h"
+#include "draw_board.h"
 
 const char *FND_DEVICE              = "/dev/fpga_fnd";
 const char *TEXT_LCD_DEVICE         = "/dev/fpga_text_lcd";
 const char *DOT_MATRIX_DEVICE       = "/dev/fpga_dot";
 const char *SWITCH_DEVICE           = "/dev/fpga_push_switch";
+const char *READKEY_DEVICE          = "/dev/input/event0";
 const char *MEM_DEVICE              = "/dev/mem";
 const unsigned int LED_BASE_ADDRESS = 0x08000000;
 const unsigned int LED_OFFSET       = 0x16;
-
+const unsigned int VOL_PLUS         = 0x73;
+const unsigned int VOL_MINUS        = 0x72;
+const unsigned int BACK             = 0x9E;
+const unsigned int KEY_RELEASE      = 0x00;
+const unsigned int KEY_PRESS        = 0x01;
 
 int main() {
   int fnd_fd,
       text_lcd_fd,
       dot_matrix_fd,
       switch_fd,
+      readkey_fd,
       led_fd;
   unsigned long *fpga_addr,
                 *led_addr;
@@ -39,35 +47,57 @@ int main() {
   }
   if ((text_lcd_fd = open(TEXT_LCD_DEVICE, O_RDWR)) < 0) {
     perror("open Text LCD failed\n");
+    close(fnd_fd);
     close(text_lcd_fd);
     return 1;
   }
   if ((dot_matrix_fd = open(DOT_MATRIX_DEVICE, O_RDWR)) < 0) {
     perror("open Dot Matrix failed\n");
+    close(fnd_fd);
+    close(text_lcd_fd);
     close(dot_matrix_fd);
     return 1;
   }
   if ((switch_fd = open(SWITCH_DEVICE, O_RDONLY)) < 0) {
     perror("open Switch failed\n");
+    close(fnd_fd);
+    close(text_lcd_fd);
+    close(dot_matrix_fd);
     close(switch_fd);
+    return 1;
+  }
+  if ((readkey_fd = open(READKEY_DEVICE, O_RDONLY | O_NONBLOCK)) < 0) {
+    perror("open READ KEY failed\n");
+    close(fnd_fd);
+    close(text_lcd_fd);
+    close(dot_matrix_fd);
+    close(switch_fd);
+    close(readkey_fd);
     return 1;
   }
   if ((led_fd = open(MEM_DEVICE, O_RDWR | O_SYNC)) < 0) {
     perror("open LED failed\n");
+    close(fnd_fd);
+    close(text_lcd_fd);
+    close(dot_matrix_fd);
+    close(switch_fd);
+    close(readkey_fd);
     close(led_fd);
     return 1;
   }
 
-  if ((fpga_addr = mmap(NULL, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, led_fd, LED_BASE_ADDRESS)) == MAP_FAILED) {
+  if ((fpga_addr = mmap(NULL, 0x1000, PROT_READ | PROT_WRITE, MAP_SHARED, led_fd, LED_BASE_ADDRESS)) == MAP_FAILED) {
     perror("mmap failed\n");
+    close(fnd_fd);
+    close(text_lcd_fd);
+    close(dot_matrix_fd);
+    close(switch_fd);
+    close(readkey_fd);
     close(led_fd);
     return 1;
   }
 
   led_addr = (unsigned char *)((void *)fpga_addr+LED_OFFSET);
-
-
-
 
   // get shared memory
   int shm_id;
@@ -85,24 +115,31 @@ int main() {
     
     // attatch to shared memory and intialize device status
     struct device_status *status = shmat(shm_id, NULL, 0);
-    
-    
+  
     for (;;) {
       // read signals
-
-      // check mode
-
-      // set status
-
+      read(readkey_fd, status->readkey_val, sizeof(status->readkey_val));
+      read(switch_fd, &status->switch_val, sizeof(status->switch_val));
       
-      usleep(400000);
+      // set status
+      
+      // if BACK key was pressed, end program
+      if (status->readkey_val[0].code == BACK && status->readkey_val[0].value == KEY_PRESS) break;
+
+      // if Volume key was pressed, change mode
+      if (status->readkey_val[0].code == VOL_PLUS && status->readkey_val[0].value == KEY_PRESS) {
+        status->mode = (status->mode + 1) % 4;
+      } else if (status->readkey_val[0].code == VOL_MINUS && status->readkey_val[0].value == KEY_PRESS) {
+        status->mode = (status->mode + 3) % 4;
+      }
+      
+      // usleep(400000);
     }
 
     // detach from shared memory
     shmdt(status);
   
   } else {
-
     pid_t output;
     if ((output = fork()) == -1) {
       perror("fork failed\n");
@@ -114,16 +151,16 @@ int main() {
       struct device_status *status = shmat(shm_id, NULL, 0);
       
       for (;;) {
-        // check mode
-
+        // if BACK key was pressed, end program
+        if (status->readkey_val[0].code == BACK) break;
 
         // write to device
         write(fnd_fd, status->fnd_val, 4);
         write(text_lcd_fd, status->text_lcd_val, 32);
         write(dot_matrix_fd, status->dot_matrix_val, sizeof(status->dot_matrix_val));
-        *(status->led_addr) = status->led_val;
+        *led_addr = status->led_val;
 
-        usleep(400000);
+        // usleep(400000);
       }
 
       // detach from shared memory
@@ -134,16 +171,42 @@ int main() {
       
       // attatch to shared memory and initialize status
       struct device_status *status = shmat(shm_id, NULL, 0);
-      init_device(status, fnd_fd, text_lcd_fd, switch_fd, dot_matrix_fd, led_addr);
+
+      // the default mode of the device is Clock
+      init_status(status, CLOCK_MODE);
+
+      unsigned int current_mode = status->mode;
       
       for (;;) {
-        // check mode
+        // if BACK key was pressed, end program
+        if (status->readkey_val[0].code == BACK) break;
+
+        // if the mode has been changed, set device status to zero values
+        if (current_mode != status->mode) {
+          current_mode = status->mode;
+          init_status(status, status->mode);
+        }
 
         // set status
+        switch (status->mode) {
+          case CLOCK_MODE:
+            clock(status);
+            break;
+          case COUNTER_MODE:
+            counter(status);
+            break;
+          case TEXT_EDITOR_MODE:
+            text_editor(status);
+            break;
+          case DRAW_BOARD_MODE:
+            draw_board(status);
+            break;
+          default:
+            // no such case
+            break;
+        }
 
-
-
-        usleep(400000);
+        // usleep(400000);
       }
       
       // detach from shared memory
@@ -157,13 +220,14 @@ int main() {
       shmctl(shm_id, IPC_RMID, NULL);
 
       // close device drivers
+      close(readkey_fd);
+      close(switch_fd);
       close(fnd_fd);
       close(text_lcd_fd);
       close(dot_matrix_fd);
-      close(switch_fd);
 
       // close memory mapped device
-      munmap(led_addr, 4096);
+      munmap(led_addr, 0x1000);
       close(led_fd);
     }
   }

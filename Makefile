@@ -1,4 +1,5 @@
 CC			= arm-none-linux-gnueabi-gcc
+CFLAGS	= -static
 SOURCE	= main.c
 TARGET	= test
 RM			= rm
@@ -6,7 +7,7 @@ RM			= rm
 all: run
 
 run:
-	@$(CC) -static -g -O -o $(TARGET) $(SOURCE)
+	@$(CC) $(CFLAGS) -g -O -o $(TARGET) $(SOURCE)
 	@./$(TARGET)
 	@$(RM) -f $(TARGET)
 
