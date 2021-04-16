@@ -1,6 +1,7 @@
 #ifndef _DEVICE_STATUS_H
 #define _DEVICE_STATUS_H
 
+#include <unistd.h>
 #include <string.h>
 #include <linux/input.h>
 

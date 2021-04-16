@@ -2,7 +2,6 @@
 #define _TEXT_EDITOR_H
 
 #include <stdio.h>
-#include <unistd.h>
 
 #include "device_status.h"
 
