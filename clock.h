@@ -6,7 +6,7 @@
 
 #include "device_status.h"
 
-const unsigned int CLOCK_MODE = 0;
+#define CLOCK_MODE 0
 
 /**
  * clock - handles mode 1(Clock)

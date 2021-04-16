@@ -1,17 +1,15 @@
 CC			= arm-none-linux-gnueabi-gcc
 CFLAGS	= -static
-SOURCE	= main.c
+SOURCES	= main.c clock.c counter.c text_editor.c draw_board.c device_status.c
 TARGET	= test
 RM			= rm
 
-all: run
+all: build
 
-run:
-	@$(CC) $(CFLAGS) -g -O -o $(TARGET) $(SOURCE)
-	@./$(TARGET)
-	@$(RM) -f $(TARGET)
+build:
+	@$(CC) $(CFLAGS) -g -o $(TARGET) $(SOURCES)
 
 test:
-	@gcc -g -O -o $(TARGET) $(SOURCE)
+	@gcc -g -o $(TARGET) $(SOURCES)
 	@./$(TARGET)
 	@$(RM) -f $(TARGET)
