@@ -1,7 +1,5 @@
-# CC			= arm-none-linux-gnueabi-gcc
-# CFLAGS	= -static
-CC			= gcc
-CFLAGS	= 
+CC			= arm-none-linux-gnueabi-gcc
+CFLAGS	= -static
 TARGET	= app
 OBJS		= main.o clock.o counter.o text_editor.o draw_board.o device_status.o
 
