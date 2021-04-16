@@ -155,8 +155,8 @@ int main() {
         printf("current FND value: %d%d%d%d\n", status->fnd_val[0], status->fnd_val[1], status->fnd_val[2], status->fnd_val[3]);
 
         // write to device
-        write(fnd_fd, &status->fnd_val, 4);
-        write(text_lcd_fd, &status->text_lcd_val, 32);
+        write(fnd_fd, status->fnd_val, 4);
+        write(text_lcd_fd, status->text_lcd_val, 32);
         write(dot_matrix_fd, status->dot_matrix_val, sizeof(status->dot_matrix_val));
         *led_addr = status->led_val;
 
