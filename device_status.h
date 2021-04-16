@@ -4,6 +4,11 @@
 #include <string.h>
 #include <linux/input.h>
 
+#define CLOCK_MODE        0
+#define COUNTER_MODE      1
+#define TEXT_EDITOR_MODE  2
+#define DRAW_BOARD_MODE   3
+
 /**
  * struct device_status - board status
  *
@@ -25,16 +30,16 @@ struct device_status {
   unsigned long       led_val;
 };
 
-extern inline void set_fnd_value(struct device_status *status, const unsigned char val[4]);
-extern inline void set_text_lcd_value(struct device_status *status, const unsigned char val[32]);
-extern inline void set_dot_matrix_value(struct device_status *status, const unsigned char val[10]);
-extern inline void set_led_value(struct device_status *status, const unsigned long val);
+void set_fnd_value(struct device_status *status, const unsigned char val[4]);
+void set_text_lcd_value(struct device_status *status, const unsigned char val[32]);
+void set_dot_matrix_value(struct device_status *status, const unsigned char val[10]);
+void set_led_value(struct device_status *status, const unsigned long val);
 
 /**
  * init_status - initializes @status
  *
  * @status: device status to initialize
  */
-extern inline void init_status(struct device_status *status, unsigned int mode);
+void init_status(struct device_status *status, unsigned int mode);
 
 #endif

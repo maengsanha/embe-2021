@@ -5,6 +5,6 @@
  *
  * @status: current status of the device
  */
-extern inline void text_editor(struct device_status *status) {
+void text_editor(struct device_status *status) {
   
 }

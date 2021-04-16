@@ -6,8 +6,6 @@
 
 #include "device_status.h"
 
-#define CLOCK_MODE 0
-
 /**
  * clock - handles mode 1(Clock)
  *

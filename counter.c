@@ -5,6 +5,6 @@
  *
  * @status: current status of the device
  */
-extern inline void counter(struct device_status *status) {
+void counter(struct device_status *status) {
   
 }

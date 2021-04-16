@@ -1,15 +1,13 @@
-#ifndef _DRAW_BOARD
-#define _DRAW_BOARD
+#ifndef _DRAW_BOARD_H
+#define _DRAW_BOARD_H
 
 #include "device_status.h"
-
-#define DRAW_BOARD_MODE 3
 
 /**
  * draw_board - handles mode 4(Draw board)
  *
  * @status: current status of the device
  */
-extern inline void draw_board(struct device_status *status);
+void draw_board(struct device_status *status);
 
 #endif

@@ -5,6 +5,6 @@
  *
  * @status: current status of the device
  */
-extern inline void draw_board(struct device_status *status) {
+void draw_board(struct device_status *status) {
   
 }
