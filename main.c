@@ -201,8 +201,7 @@ int main() {
           case DRAW_BOARD_MODE:
             draw_board(status);
             break;
-          default:
-            // no such case
+          default:  // no such case
             break;
         }
 
