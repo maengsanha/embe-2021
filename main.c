@@ -152,8 +152,6 @@ int main() {
         // if BACK key was pressed, end program
         if (status->readkey_val[0].code == BACK) break;
 
-        printf("current FND value: %d%d%d%d\n", status->fnd_val[0], status->fnd_val[1], status->fnd_val[2], status->fnd_val[3]);
-
         // write to device
         write(fnd_fd, status->fnd_val, 4);
         write(text_lcd_fd, status->text_lcd_val, 32);
