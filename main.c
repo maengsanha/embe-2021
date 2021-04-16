@@ -178,7 +178,7 @@ int main() {
         if (current_mode != status->mode) {
           current_mode = status->mode;
           init_status(status);
-          printf("mode: %d\n", status->mode+1);
+          // printf("mode: %d\n", status->mode+1);
         }
 
         // set status

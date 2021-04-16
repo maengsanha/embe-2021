@@ -1,6 +1,9 @@
 #ifndef _COUNTER_H
 #define _COUNTER_H
 
+#include <stdio.h>
+#include <unistd.h>
+
 #include "device_status.h"
 
 /**
