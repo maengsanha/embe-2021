@@ -59,7 +59,6 @@ int main() {
     close(switch_fd);
     return 1;
   }
-  // if ((readkey_fd = open(READKEY_DEVICE, O_RDONLY | O_NONBLOCK)) < 0) {
   if ((readkey_fd = open(READKEY_DEVICE, O_RDONLY)) < 0) {
     printf("open READ KEY failed\n");
     close(fnd_fd);
@@ -113,7 +112,8 @@ int main() {
     for (;;) {
       // read signals
       read(readkey_fd, status->readkey_val, sizeof(status->readkey_val));
-      read(switch_fd, &status->switch_val, sizeof(status->switch_val));
+      // read(switch_fd, &status->switch_val, sizeof(status->switch_val));
+      read(switch_fd, status->switch_val, sizeof(status->switch_val));
       
       // if BACK key was pressed, end program
       if (status->readkey_val[0].code == BACK && status->readkey_val[0].value == KEY_PRESS) break;
