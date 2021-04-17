@@ -60,5 +60,5 @@ void handle_clock(struct device_status *status) {
   }
 
   if (status->mode_1_on_change) status->led_val = status->led_val == 0x20 ? 0x10 : 0x20;
-  sleep(1);
+  // sleep(1);
 }
