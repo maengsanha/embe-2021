@@ -28,14 +28,12 @@ void init_clock(struct device_status *status) {
  */
 void handle_clock(struct device_status *status) {
   // if SW[2] pressed, reset
-  if (status->switch_val[1] == KEY_PRESS) {
+  if (status->switch_val[1] == KEY_PRESS)
     init_clock(status);
-  }
 
   // if SW[1] pressed, start or save
   if (status->switch_val[0] == KEY_PRESS) {
     if (status->mode_1_on_change) {
-      // case of save
       status->led_val           = 0x80;
       status->fnd_val[0]        = status->mode_1_hour/10;
       status->fnd_val[1]        = status->mode_1_hour%10;
@@ -43,7 +41,6 @@ void handle_clock(struct device_status *status) {
       status->fnd_val[3]        = status->mode_1_min%10;
       status->mode_1_on_change  = false;
     } else {
-      // case of start
       status->mode_1_on_change  = true;
     }
   }
