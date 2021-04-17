@@ -28,7 +28,7 @@
  * @led_val:        current value of LEDs
  */
 struct device_status {
-  unsigned int        mode; /* 0 ~ 3 */
+  unsigned int        mode;           /* 0 ~ 3 */
   struct input_event  readkey_val[64];
   unsigned char       switch_val[9];
   unsigned char       fnd_val[4];
@@ -38,6 +38,8 @@ struct device_status {
   bool                mode_1_on_change;
   unsigned int        mode_1_hour;
   unsigned int        mode_1_min;
+  unsigned int        mode_2_number;  /* 2 or 4 or 8 or 10 */
+  unsigned int        mode_2_val;
 };
 
 void set_fnd_value(struct device_status *status, const unsigned char val[4]);

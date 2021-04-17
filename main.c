@@ -164,8 +164,10 @@ int main() {
       struct device_status *status = shmat(shm_id, NULL, 0);
 
       // the default mode of the device is Clock
-      status->mode = CLOCK_MODE;
-      init_clock(status);
+      // status->mode = CLOCK_MODE;
+      // init_clock(status);
+      status->mode = COUNTER_MODE;
+      init_counter(status);
 
       unsigned int current_mode = status->mode;
 
