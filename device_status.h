@@ -41,9 +41,14 @@ struct device_status {
   unsigned int        mode_2_number;        /* 2 or 4 or 8 or 10 */
   unsigned int        mode_2_val;
   unsigned int        mode_3_mode;          /* 0 or 1 */
-  unsigned int        mode_3_switch_cnt;
+  unsigned int        mode_3_switch_cnt;    /* 0 ~ 9999 */
   unsigned int        mode_3_last_pressed;  /* 0 ~ 8 */
   unsigned int        mode_3_write_pos;     /* 0 ~ 31 */
+  unsigned int        mode_4_switch_cnt;    /* 0 ~ 9999 */
+  unsigned int        mode_4_cursor_x;      /* 0 ~ 6 */
+  unsigned int        mode_4_cursor_y;      /* 0 ~ 9 */
+  bool                mode_4_cursor_on;
+  bool                mode_4_cursor_current_on;
 };
 
 void set_fnd_value(struct device_status *status, const unsigned char val[4]);

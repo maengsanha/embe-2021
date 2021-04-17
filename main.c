@@ -166,8 +166,8 @@ int main() {
       // the default mode of the device is Clock
       // status->mode = CLOCK_MODE;
       // init_clock(status);
-      status->mode = TEXT_EDITOR_MODE;
-      init_text_editor(status);
+      status->mode = DRAW_BOARD_MODE;
+      init_draw_board(status);
 
       unsigned int current_mode = status->mode;
 
@@ -213,15 +213,15 @@ int main() {
         usleep(400000);
       }
 
+      // wait other processes
+      wait(NULL);
+      wait(NULL);
+
       // reinitialize device when program ends
       init_status(status);
       
       // detach from shared memory
       shmdt(status);
-      
-      // wait other processes
-      wait(NULL);
-      wait(NULL);
 
       // release shared memory
       shmctl(shm_id, IPC_RMID, NULL);
