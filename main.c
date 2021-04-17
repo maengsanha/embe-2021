@@ -113,10 +113,6 @@ int main() {
       // read signals
       read(readkey_fd, status->readkey_val, sizeof(status->readkey_val));
       read(switch_fd, status->switch_val, sizeof(status->switch_val));
-
-      int i;
-      for (i=0; i<9; i++) printf("[%d] ", status->switch_val[i]);
-      printf("\n");
       
       // if BACK key was pressed, end program
       if (status->readkey_val[0].code == BACK && status->readkey_val[0].value == KEY_PRESS) break;

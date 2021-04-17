@@ -61,8 +61,8 @@ void handle_clock(struct device_status *status) {
       status->mode_1_min  = (status->mode_1_min+1)%60;
     }
 
-    printf("hour: %d\tminute: %d\n", status->mode_1_hour, status->mode_1_min);
-    sleep(1);
+    // printf("hour: %d\tminute: %d\n", status->mode_1_hour, status->mode_1_min);
+    // sleep(1);
 
   } while(status->mode == CLOCK_MODE);
 }
