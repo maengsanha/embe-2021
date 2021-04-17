@@ -27,81 +27,42 @@ void init_clock(struct device_status *status) {
  * @status: current status of the device
  */
 void handle_clock(struct device_status *status) {
-  // if SW[2] pressed, reset
-  if (status->switch_val[1] == 1) {
-    init_clock(status);
-  }
+  do {
+    if (status->readkey_val[0].code == BACK && status->readkey_val[0].value == KEY_PRESS) break;
 
-  if (status->switch_val[0] == 1) {
-    if (status->mode_1_on_change) {
-      status->led_val           = 0x80;
-      status->fnd_val[0]        = status->mode_1_hour/10;
-      status->fnd_val[1]        = status->mode_1_hour%10;
-      status->fnd_val[2]        = status->mode_1_min/10;
-      status->fnd_val[3]        = status->mode_1_min%10;
-      status->mode_1_on_change  = false;
-      // TODO: LED 3, 4 glitter
-    } else {
-      status->mode_1_on_change  = true;
+    // if SW[2] pressed, reset
+    if (status->switch_val[1] == KEY_PRESS) {
+      init_clock(status);
     }
-  }
 
-  if (status->switch_val[2] == 1 && status->mode_1_on_change) {
-    status->mode_1_hour = (status->mode_1_hour+1)%24;
-  }
+    // if SW[1] pressed, start changing or save
+    if (status->switch_val[0] == KEY_PRESS) {
+      if (status->mode_1_on_change) {
+        // case of save
+        status->led_val           = 0x80;
+        status->fnd_val[0]        = status->mode_1_hour/10;
+        status->fnd_val[1]        = status->mode_1_hour%10;
+        status->fnd_val[2]        = status->mode_1_min/10;
+        status->fnd_val[3]        = status->mode_1_min%10;
+        status->mode_1_on_change  = false;
+      } else {
+        status->mode_1_on_change  = true;
+        status->led_val           = 0x20;
+        // TODO: LED 3, 4 glitter
+      }
+    }
 
-  if (status->switch_val[3] == 1 && status->mode_1_on_change) {
-    status->mode_1_hour = (status->mode_1_hour+(status->mode_1_min+1)/60)%24;
-    status->mode_1_min = (status->mode_1_min+1)%60;
-  }
+    if (status->switch_val[2] == KEY_PRESS && status->mode_1_on_change) {
+      status->mode_1_hour = (status->mode_1_hour+1)%24;
+    }
 
-  printf("hour: %d\tminute: %d\n", status->mode_1_hour, status->mode_1_min);
+    if (status->switch_val[3] == KEY_PRESS && status->mode_1_on_change) {
+      status->mode_1_hour = (status->mode_1_hour+(status->mode_1_min+1)/60)%24;
+      status->mode_1_min  = (status->mode_1_min+1)%60;
+    }
 
+    printf("hour: %d\tminute: %d\n", status->mode_1_hour, status->mode_1_min);
+    sleep(1);
 
-
-
-  // do {
-  //   if (status->readkey_val[0].code == BACK) break;
-    
-  //   time(&rawtime);
-  //   now = localtime(&rawtime);
-
-  //   if (status->switch_val[0] == KEY_PRESS) {
-  //     if (!start) {
-  //       start = true;
-  //     } else {
-  //       status->fnd_val[0]  = h/10;
-  //       status->fnd_val[1]  = h%10;
-  //       status->fnd_val[2]  = m/10;
-  //       status->fnd_val[3]  = m%10;
-  //       status->led_val     = 0x80;
-  //       start               = false;
-  //     }
-  //   }
-
-  //   if (status->switch_val[1] == KEY_PRESS) {
-  //     h                   = now->tm_hour;
-  //     m                   = now->tm_min;
-  //     status->fnd_val[0]  = h/10;
-  //     status->fnd_val[1]  = h%10;
-  //     status->fnd_val[2]  = m/10;
-  //     status->fnd_val[3]  = m%10;
-  //     status->led_val     = 0x80;
-  //     start               = false;
-  //   }
-
-  //   if (start) {
-  //     status->led_val = led_3_off ? 0x20 : 0x10;
-  //     if (status->switch_val[2] == KEY_PRESS) {
-  //       h = (h + 1) % 24;
-  //     }
-  //     if (status->switch_val[3] == KEY_PRESS) {
-  //       m++;
-  //       h = (h + m/60) % 24;
-  //       m %= 60;
-  //     }
-  //   }
-
-  //   sleep(1);
-  // } while (status->mode == CLOCK_MODE);
+  } while(status->mode == CLOCK_MODE);
 }
