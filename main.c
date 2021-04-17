@@ -33,18 +33,18 @@ int main() {
   unsigned char *led_addr;
 
   // open devices
-  if ((fnd_fd = open(FND_DEVICE, O_RDWR)) < 0) {
+  if ((fnd_fd = open(FND_DEVICE, O_WRONLY)) < 0) {
     printf("open FND failed\n");
     close(fnd_fd);
     return 1;
   }
-  if ((text_lcd_fd = open(TEXT_LCD_DEVICE, O_RDWR)) < 0) {
+  if ((text_lcd_fd = open(TEXT_LCD_DEVICE, O_WRONLY)) < 0) {
     printf("open Text LCD failed\n");
     close(fnd_fd);
     close(text_lcd_fd);
     return 1;
   }
-  if ((dot_matrix_fd = open(DOT_MATRIX_DEVICE, O_RDWR)) < 0) {
+  if ((dot_matrix_fd = open(DOT_MATRIX_DEVICE, O_WRONLY)) < 0) {
     printf("open Dot Matrix failed\n");
     close(fnd_fd);
     close(text_lcd_fd);
