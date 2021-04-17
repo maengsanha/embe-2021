@@ -1,6 +1,7 @@
 #ifndef _DEVICE_STATUS_H
 #define _DEVICE_STATUS_H
 
+#include <stdbool.h>
 #include <unistd.h>
 #include <string.h>
 #include <linux/input.h>
@@ -34,6 +35,9 @@ struct device_status {
   unsigned char       text_lcd_val[32];
   unsigned char       dot_matrix_val[10];
   unsigned long       led_val;
+  bool                mode_1_on_change;
+  unsigned int        mode_1_hour;
+  unsigned int        mode_1_min;
 };
 
 void set_fnd_value(struct device_status *status, const unsigned char val[4]);

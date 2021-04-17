@@ -124,7 +124,7 @@ int main() {
         status->mode = (status->mode + 3) % 4;
       }
       
-      usleep(500000);
+      // usleep(500000);
     }
 
     // detach from shared memory
@@ -143,7 +143,7 @@ int main() {
       
       for (;;) {
         // if BACK key was pressed, end program
-        if (status->readkey_val[0].code == BACK) break;
+        if (status->readkey_val[0].code == BACK && status->readkey_val[0].value == KEY_PRESS) break;
 
         // write to device
         write(fnd_fd, status->fnd_val, 4);
@@ -151,7 +151,7 @@ int main() {
         write(dot_matrix_fd, status->dot_matrix_val, sizeof(status->dot_matrix_val));
         *led_addr = status->led_val;
 
-        usleep(500000);
+        // usleep(500000);
       }
 
       // detach from shared memory
@@ -171,12 +171,12 @@ int main() {
 
       for (;;) {
         // if BACK key was pressed, end program
-        if (status->readkey_val[0].code == BACK) break;
+        if (status->readkey_val[0].code == BACK && status->readkey_val[0].value == KEY_PRESS) break;
 
         // if the mode has been changed, set device status to zero values
         if (current_mode != status->mode) {
           current_mode = status->mode;
-          switch (status->mode) {
+          switch (current_mode) {
           case CLOCK_MODE:
             init_clock(status);
             break;
@@ -193,7 +193,7 @@ int main() {
         }
 
         // set status
-        switch (status->mode) {
+        switch (current_mode) {
         case CLOCK_MODE:
           handle_clock(status);
           break;
@@ -208,7 +208,7 @@ int main() {
           break;
         }
 
-        usleep(500000);
+        // usleep(500000);
       }
 
       // reinitialize device when program ends

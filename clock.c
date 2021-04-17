@@ -10,12 +10,15 @@ void init_clock(struct device_status *status) {
   memset(status->dot_matrix_val, 0x00, 10);
   time_t rawtime;
   time(&rawtime);
-  struct tm *now      = localtime(&rawtime);
-  status->fnd_val[0]  = now->tm_hour/10;
-  status->fnd_val[1]  = now->tm_hour%10;
-  status->fnd_val[2]  = now->tm_min/10;
-  status->fnd_val[3]  = now->tm_min%10;
-  status->led_val     = 0x80;
+  struct tm *now            = localtime(&rawtime);
+  status->mode_1_on_change  = false;
+  status->mode_1_hour       = now->tm_hour;
+  status->mode_1_min        = now->tm_min;
+  status->fnd_val[0]        = status->mode_1_hour/10;
+  status->fnd_val[1]        = status->mode_1_hour%10;
+  status->fnd_val[2]        = status->mode_1_min/10;
+  status->fnd_val[3]        = status->mode_1_min%10;
+  status->led_val           = 0x80;
 }
 
 /**
@@ -24,7 +27,39 @@ void init_clock(struct device_status *status) {
  * @status: current status of the device
  */
 void handle_clock(struct device_status *status) {
-  printf("clock...\n");
+  // if SW[2] pressed, reset
+  if (status->switch_val[1] == 1) {
+    init_clock(status);
+  }
+
+  if (status->switch_val[0] == 1) {
+    if (status->mode_1_on_change) {
+      status->led_val           = 0x80;
+      status->fnd_val[0]        = status->mode_1_hour/10;
+      status->fnd_val[1]        = status->mode_1_hour%10;
+      status->fnd_val[2]        = status->mode_1_min/10;
+      status->fnd_val[3]        = status->mode_1_min%10;
+      status->mode_1_on_change  = false;
+      // TODO: LED 3, 4 glitter
+    } else {
+      status->mode_1_on_change  = true;
+    }
+  }
+
+  if (status->switch_val[2] == 1 && status->mode_1_on_change) {
+    status->mode_1_hour = (status->mode_1_hour+1)%24;
+  }
+
+  if (status->switch_val[3] == 1 && status->mode_1_on_change) {
+    status->mode_1_hour = (status->mode_1_hour+(status->mode_1_min+1)/60)%24;
+    status->mode_1_min = (status->mode_1_min+1)%60;
+  }
+
+  printf("hour: %d\tminute: %d\n", status->mode_1_hour, status->mode_1_min);
+
+
+
+
   // do {
   //   if (status->readkey_val[0].code == BACK) break;
     
