@@ -112,12 +112,7 @@ int main() {
     for (;;) {
       // read signals
       read(readkey_fd, status->readkey_val, sizeof(status->readkey_val));
-      // read(switch_fd, &status->switch_val, sizeof(status->switch_val));
       read(switch_fd, status->switch_val, sizeof(status->switch_val));
-      printf("[%d] [%d] [%d] [%d] [%d] [%d] [%d] [%d] [%d]\n",
-        status->switch_val[0], status->switch_val[1], status->switch_val[2],
-        status->switch_val[3], status->switch_val[4], status->switch_val[5],
-        status->switch_val[6], status->switch_val[7], status->switch_val[8]);
       
       // if BACK key was pressed, end program
       if (status->readkey_val[0].code == BACK && status->readkey_val[0].value == KEY_PRESS) break;
@@ -181,8 +176,20 @@ int main() {
         // if the mode has been changed, set device status to zero values
         if (current_mode != status->mode) {
           current_mode = status->mode;
-          init_status(status);
-          // printf("mode: %d\n", status->mode+1);
+          switch (status->mode) {
+          case CLOCK_MODE:
+            init_clock(status);
+            break;
+          case COUNTER_MODE:
+            init_counter(status);
+            break;
+          case TEXT_EDITOR_MODE:
+            init_text_editor(status);
+            break;
+          case DRAW_BOARD_MODE:
+            init_draw_board(status);
+            break;
+          }
         }
 
         // set status
@@ -198,9 +205,6 @@ int main() {
           break;
         case DRAW_BOARD_MODE:
           handle_draw_board(status);
-          break;
-        default:
-          // no such case
           break;
         }
 

@@ -6,7 +6,7 @@ void set_dot_matrix_value(struct device_status *status, const unsigned char val[
 void set_led_value(struct device_status *status, const unsigned long val)             { status->led_val = val; }
 
 /**
- * init_status - initializes @status
+ * init_status - initializes @status to the default status
  *
  * @status: device status to initialize
  */

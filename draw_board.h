@@ -6,6 +6,13 @@
 #include "device_status.h"
 
 /**
+ * init_draw_board - initializes @status to the default status of mode 4(Draw board)
+ *
+ * @status: device status to initialize
+ */
+void init_draw_board(struct device_status *status);
+
+/**
  * handle_draw_board - handles mode 4(Draw board)
  *
  * @status: current status of the device
