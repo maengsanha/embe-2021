@@ -1,3 +1,8 @@
+/**
+ * Embedded system software, 2021
+ *
+ * draw_board.h - draw board function defition
+ */
 #ifndef _DRAW_BOARD_H
 #define _DRAW_BOARD_H
 

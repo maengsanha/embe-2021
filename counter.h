@@ -1,3 +1,8 @@
+/**
+ * Embedded system software, 2021
+ *
+ * counter.h - counter function defition
+ */
 #ifndef _COUNTER_H
 #define _COUNTER_H
 

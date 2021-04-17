@@ -1,3 +1,8 @@
+/**
+ * Embedded system software, 2021
+ *
+ * text_editor.c - text editor function implementation
+ */
 #include "text_editor.h"
 
 void text_editor_set_dot_matrix(struct device_status *status) {

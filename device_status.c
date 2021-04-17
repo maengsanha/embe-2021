@@ -1,9 +1,9 @@
+/**
+ * Embedded system software, 2021
+ *
+ * device_status.c - FPGA device status implementation
+ */
 #include "device_status.h"
-
-void set_fnd_value(struct device_status *status, const unsigned char val[4])          { memcpy(status->fnd_val, val, sizeof(status->fnd_val)); }
-void set_text_lcd_value(struct device_status *status, const unsigned char val[32])    { memcpy(status->text_lcd_val, val, sizeof(status->text_lcd_val)); }
-void set_dot_matrix_value(struct device_status *status, const unsigned char val[10])  { memcpy(status->dot_matrix_val, val, sizeof(status->dot_matrix_val)); }
-void set_led_value(struct device_status *status, const unsigned long val)             { status->led_val = val; }
 
 /**
  * init_status - initializes @status to the default status

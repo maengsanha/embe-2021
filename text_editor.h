@@ -1,3 +1,8 @@
+/**
+ * Embedded system software, 2021
+ *
+ * text_editor.h - text editor function defition
+ */
 #ifndef _TEXT_EDITOR_H
 #define _TEXT_EDITOR_H
 

@@ -1,3 +1,8 @@
+/**
+ * Embedded system software, 2021
+ *
+ * clock.h - clock function defition
+ */
 #ifndef _CLOCK_H
 #define _CLOCK_H
 

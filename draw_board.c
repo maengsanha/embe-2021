@@ -1,3 +1,8 @@
+/**
+ * Embedded system software, 2021
+ *
+ * draw_board.c - draw board function implementation
+ */
 #include "draw_board.h"
 
 /**

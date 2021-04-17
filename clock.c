@@ -1,3 +1,8 @@
+/**
+ * Embedded system software, 2021
+ *
+ * clock.c - clock function implementation
+ */
 #include "clock.h"
 
 /**

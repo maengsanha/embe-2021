@@ -1,3 +1,8 @@
+/**
+ * Embedded system software, 2021
+ *
+ * main.c - FPGA application driver
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -164,10 +169,8 @@ int main() {
       struct device_status *status = shmat(shm_id, NULL, 0);
 
       // the default mode of the device is Clock
-      // status->mode = CLOCK_MODE;
-      // init_clock(status);
-      status->mode = DRAW_BOARD_MODE;
-      init_draw_board(status);
+      status->mode = CLOCK_MODE;
+      init_clock(status);
 
       unsigned int current_mode = status->mode;
 

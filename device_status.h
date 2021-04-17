@@ -1,3 +1,8 @@
+/**
+ * Embedded system software, 2021
+ *
+ * device_status.h - FPGA device status definition
+ */
 #ifndef _DEVICE_STATUS_H
 #define _DEVICE_STATUS_H
 
@@ -19,13 +24,31 @@
 /**
  * struct device_status - board status
  *
- * @mode:           current mode of the device (Clock / Counter / Text editor / Draw board)
- * @readkey_val:    current value of READKEY
- * @switch_val:     current value of Switches
- * @fnd_val:        current value of FND
- * @text_lcd_val:   current value of Text LCD
- * @dot_matrix_val: current value of Dot Matrix
- * @led_val:        current value of LEDs
+ * @mode:                     current mode of the device (Clock / Counter / Text editor / Draw board)
+ * @readkey_val:              current value of READKEY
+ * @switch_val:               current value of Switches
+ * @fnd_val:                  current value of FND
+ * @text_lcd_val:             current value of Text LCD
+ * @dot_matrix_val:           current value of Dot Matrix
+ * @led_val:                  current value of LEDs
+ * 
+ * @mode_1_on_change:         whether clock is changable or not
+ * @mode_1_hour:              hour value of clock
+ * @mode_1_min:               minute value of clock
+ *
+ * @mode_2_number:            current number of counter (10 -> 8 -> 4 -> 2)
+ * @mode_2_val:               substantial value of counter
+ *
+ * @mode_3_mode:              current mode of Text editor (Alphabet or Number)
+ * @mode_3_switch_cnt:        number that switch pressed
+ * @mode_3_last_pressed:      number of last pressed switch
+ * @mode_3_write_pos:         current position to write on Text LCD
+ *
+ * @mode_4_switch_cnt:        number that switch pressed
+ * @mode_4_cursor_x:          X coordinate of cursor
+ * @mode_4_cursor_y:          Y coordinate of cursor
+ * @mode_4_cursor_on:         whether show cursor on Dot matrix or not
+ * @mode_4_cursor_current_on: whether cursor is now shown on Dot matrix or not
  */
 struct device_status {
   unsigned int        mode;                 /* 0 ~ 3 */
@@ -50,11 +73,6 @@ struct device_status {
   bool                mode_4_cursor_on;
   bool                mode_4_cursor_current_on;
 };
-
-void set_fnd_value(struct device_status *status, const unsigned char val[4]);
-void set_text_lcd_value(struct device_status *status, const unsigned char val[32]);
-void set_dot_matrix_value(struct device_status *status, const unsigned char val[10]);
-void set_led_value(struct device_status *status, const unsigned long val);
 
 /**
  * init_status - initializes @status to the default status

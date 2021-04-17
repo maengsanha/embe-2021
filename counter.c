@@ -1,3 +1,8 @@
+/**
+ * Embedded system software, 2021
+ *
+ * counter.c - counter function implementation
+ */
 #include "counter.h"
 
 /**
