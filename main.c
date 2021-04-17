@@ -145,7 +145,7 @@ int main() {
         // if BACK key was pressed, end program
         if (status->readkey_val[0].code == BACK && status->readkey_val[0].value == KEY_PRESS) break;
 
-        // write to device
+        // write to devices
         write(fnd_fd, status->fnd_val, 4);
         write(text_lcd_fd, status->text_lcd_val, 32);
         write(dot_matrix_fd, status->dot_matrix_val, sizeof(status->dot_matrix_val));
@@ -166,8 +166,8 @@ int main() {
       // the default mode of the device is Clock
       // status->mode = CLOCK_MODE;
       // init_clock(status);
-      status->mode = COUNTER_MODE;
-      init_counter(status);
+      status->mode = TEXT_EDITOR_MODE;
+      init_text_editor(status);
 
       unsigned int current_mode = status->mode;
 
