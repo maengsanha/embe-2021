@@ -165,7 +165,7 @@ int main() {
 
       // the default mode of the device is Clock
       status->mode = CLOCK_MODE;
-      init_status(status);
+      init_clock(status);
 
       unsigned int current_mode = status->mode;
 

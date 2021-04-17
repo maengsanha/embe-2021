@@ -24,6 +24,7 @@ void init_clock(struct device_status *status) {
  * @status: current status of the device
  */
 void handle_clock(struct device_status *status) {
+  printf("clock...\n");
   // do {
   //   if (status->readkey_val[0].code == BACK) break;
     

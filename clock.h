@@ -1,6 +1,7 @@
 #ifndef _CLOCK_H
 #define _CLOCK_H
 
+#include <stdio.h>
 #include <stdbool.h>
 #include <time.h>
 
