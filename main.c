@@ -124,7 +124,7 @@ int main() {
         status->mode = (status->mode + 3) % 4;
       }
       
-      // usleep(500000);
+      sleep(1);
     }
 
     // detach from shared memory
@@ -151,7 +151,7 @@ int main() {
         write(dot_matrix_fd, status->dot_matrix_val, sizeof(status->dot_matrix_val));
         *led_addr = status->led_val;
 
-        // usleep(500000);
+        sleep(1);
       }
 
       // detach from shared memory
@@ -208,7 +208,7 @@ int main() {
           break;
         }
 
-        // usleep(500000);
+        sleep(1);
       }
 
       // reinitialize device when program ends
