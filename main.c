@@ -59,7 +59,7 @@ int main() {
     close(switch_fd);
     return 1;
   }
-  if ((readkey_fd = open(READKEY_DEVICE, O_RDONLY)) < 0) {
+  if ((readkey_fd = open(READKEY_DEVICE, O_RDONLY | O_NONBLOCK)) < 0) {
     printf("open READ KEY failed\n");
     close(fnd_fd);
     close(text_lcd_fd);
