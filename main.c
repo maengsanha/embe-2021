@@ -114,6 +114,10 @@ int main() {
       read(readkey_fd, status->readkey_val, sizeof(status->readkey_val));
       // read(switch_fd, &status->switch_val, sizeof(status->switch_val));
       read(switch_fd, status->switch_val, sizeof(status->switch_val));
+      printf("[%d] [%d] [%d] [%d] [%d] [%d] [%d] [%d] [%d]\n",
+        status->switch_val[0], status->switch_val[1], status->switch_val[2],
+        status->switch_val[3], status->switch_val[4], status->switch_val[5],
+        status->switch_val[6], status->switch_val[7], status->switch_val[8]);
       
       // if BACK key was pressed, end program
       if (status->readkey_val[0].code == BACK && status->readkey_val[0].value == KEY_PRESS) break;
