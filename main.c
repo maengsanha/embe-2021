@@ -198,7 +198,6 @@ int main() {
         switch (current_mode) {
         case CLOCK_MODE:
           handle_clock(status);
-          printf("h: %d m: %d\n", status->mode_1_hour, status->mode_1_min);
           break;
         case COUNTER_MODE:
           handle_counter(status);
