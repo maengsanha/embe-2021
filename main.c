@@ -114,7 +114,8 @@ int main() {
       read(readkey_fd, status->readkey_val, sizeof(status->readkey_val));
       read(switch_fd, status->switch_val, sizeof(status->switch_val));
 
-      for (int i=0; i<9; i++) printf("[%d] ", status->switch_val[i]);
+      int i;
+      for (i=0; i<9; i++) printf("[%d] ", status->switch_val[i]);
       printf("\n");
       
       // if BACK key was pressed, end program
