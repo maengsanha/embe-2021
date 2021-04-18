@@ -153,11 +153,18 @@ int main() {
         // write to devices
         write(fnd_fd, status->fnd_val, 4);
         write(text_lcd_fd, status->text_lcd_val, 32);
-        write(dot_matrix_fd, status->dot_matrix_val, sizeof(status->dot_matrix_val));
+        write(dot_matrix_fd, status->dot_matrix_val, 10);
         *led_addr = status->led_val;
 
         usleep(400000);
       }
+
+      // reinitialize device when program ends
+      init_status(status);
+      write(fnd_fd, status->fnd_val, 4);
+      write(text_lcd_fd, status->text_lcd_val, 32);
+      write(dot_matrix_fd, status->dot_matrix_val, 10);
+      *led_addr = status->led_val;
 
       // detach from shared memory
       shmdt(status);
@@ -219,9 +226,6 @@ int main() {
       // wait other processes
       wait(NULL);
       wait(NULL);
-
-      // reinitialize device when program ends
-      init_status(status);
       
       // detach from shared memory
       shmdt(status);

@@ -13,7 +13,7 @@
 void init_draw_board(struct device_status *status) {
   memset(status->fnd_val, 0x00, 4);
   memset(status->text_lcd_val, 0x20, 32);
-  memset(status->dot_matrix_val, 0x00, 10);
+  memset(status->mode_4_dot_matrix, 0x00, 10);
   status->led_val                   = 0x00;
   status->mode_4_switch_cnt         = 0;
   status->mode_4_cursor_x           = 0;
@@ -57,12 +57,12 @@ void handle_draw_board(struct device_status *status) {
   }
 
   if (status->switch_val[4] == KEY_PRESS) {
-    status->dot_matrix_val[status->mode_4_cursor_y] |= (1 << (6-status->mode_4_cursor_x));
+    status->mode_4_dot_matrix[status->mode_4_cursor_y] |= (1 << (6-status->mode_4_cursor_x));
     draw_board_update_switch_cnt(status);
   }
 
   if (status->switch_val[0] == KEY_PRESS) {
-    memset(status->dot_matrix_val, 0x00, 10);
+    memset(status->mode_4_dot_matrix, 0x00, 10);
     status->mode_4_cursor_x = 0;
     status->mode_4_cursor_y = 0;
     status->mode_4_cursor_on = true;
@@ -76,17 +76,19 @@ void handle_draw_board(struct device_status *status) {
   }
 
   if (status->switch_val[6] == KEY_PRESS) {
-    memset(status->dot_matrix_val, 0x00, 10);
+    memset(status->mode_4_dot_matrix, 0x00, 10);
     draw_board_update_switch_cnt(status);
   }
 
   if (status->switch_val[8] == KEY_PRESS) {
     unsigned int i;
     for (i=0; i<10; i++) {
-      status->dot_matrix_val[i] = ~status->dot_matrix_val[i];
+      status->mode_4_dot_matrix[i] = ~status->mode_4_dot_matrix[i];
     }
     draw_board_update_switch_cnt(status);
   }
+
+  memcpy(status->dot_matrix_val, status->mode_4_dot_matrix, 10);
 
   if (status->mode_4_cursor_on) {
     if (status->mode_4_cursor_current_on) {

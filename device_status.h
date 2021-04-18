@@ -72,6 +72,7 @@ struct device_status {
   unsigned int        mode_4_cursor_y;      /* 0 ~ 9 */
   bool                mode_4_cursor_on;
   bool                mode_4_cursor_current_on;
+  unsigned char       mode_4_dot_matrix[10];
 };
 
 /**
