@@ -5,10 +5,10 @@
 - Before run the application, you should activate `/root/.bashrc` and insert modules.
 
   ```bash
-  $ sudo -s
-  $ source /root/.bashrc
-  $ sh fpga_insmod.sh
-  $ rmmod fpga_led_driver
+  sudo -s
+  source /root/.bashrc
+  sh fpga_insmod.sh
+  rmmod fpga_led_driver
   ```
 
   
@@ -17,11 +17,11 @@
 
   ```bash
   # This command generates an execution file named 'app'
-  $ make
-  $ adb push app /data/local/tmp
+  make
+  adb push app /data/local/tmp
   
   # Go to /data/local/tmp of your device
-  $ ./app
+  ./app
   ```
 
   
@@ -29,5 +29,5 @@
 - To clean the outputs, do
 
   ```bash
-  $ make clean
+  make clean
   ```
