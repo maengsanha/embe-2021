@@ -63,10 +63,10 @@ void handle_draw_board(struct device_status *status) {
 
   if (status->switch_val[0] == KEY_PRESS) {
     memset(status->mode_4_dot_matrix, 0x00, 10);
-    status->mode_4_cursor_x = 0;
-    status->mode_4_cursor_y = 0;
-    status->mode_4_cursor_on = true;
-    status->mode_4_cursor_current_on = true;
+    status->mode_4_cursor_x           = 0;
+    status->mode_4_cursor_y           = 0;
+    status->mode_4_cursor_on          = true;
+    status->mode_4_cursor_current_on  = true;
     draw_board_update_switch_cnt(status);
   }
 

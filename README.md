@@ -8,6 +8,7 @@
   $ sudo -s
   $ source /root/.bashrc
   $ sh fpga_insmod.sh
+  $ rmmod fpga_led_driver
   ```
 
   

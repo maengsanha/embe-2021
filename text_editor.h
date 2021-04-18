@@ -6,8 +6,6 @@
 #ifndef _TEXT_EDITOR_H
 #define _TEXT_EDITOR_H
 
-#include <stdio.h>
-
 #include "device_status.h"
 
 #define ALPHABET_MODE 0

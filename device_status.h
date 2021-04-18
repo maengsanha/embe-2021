@@ -49,6 +49,7 @@
  * @mode_4_cursor_y:          Y coordinate of cursor
  * @mode_4_cursor_on:         whether show cursor on Dot matrix or not
  * @mode_4_cursor_current_on: whether cursor is now shown on Dot matrix or not
+ * @mode_4_dot_matrix         current value of picture
  */
 struct device_status {
   unsigned int        mode;                 /* 0 ~ 3 */

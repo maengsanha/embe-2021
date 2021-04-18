@@ -6,8 +6,6 @@
 #ifndef _DRAW_BOARD_H
 #define _DRAW_BOARD_H
 
-#include <stdio.h>
-
 #include "device_status.h"
 
 /**
