@@ -1,7 +1,7 @@
-CC			= arm-none-linux-gnueabi-gcc
-CFLAGS	= -static
-TARGET	= app
-OBJS		= main.o clock.o counter.o text_editor.o draw_board.o device_status.o
+CC      = arm-none-linux-gnueabi-gcc
+CFLAGS  = -static
+TARGET  = app
+OBJS    = main.o clock.o counter.o text_editor.o draw_board.o device_status.o
 
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -o app main.o clock.o counter.o text_editor.o draw_board.o device_status.o -lrt
