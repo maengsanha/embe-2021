@@ -80,7 +80,7 @@ int timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
   // initialize or run devices
   switch (cmd) {
     default:
-      *led = 0xFF;
+      *led_addr = 0xFF;
       break;
   }
 
