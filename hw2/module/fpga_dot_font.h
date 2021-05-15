@@ -1,9 +1,8 @@
 /*
  * Embedded System Software, 2021
  *
- * fpga_dot.h - FPGA Dot Matrix device utility functions definition
+ * fpga_dot.h - FPGA Dot Matrix device utility definition
  */
-#include "args.h"
 
 unsigned char fpga_number[9][10] = {
 	{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}, // blank
@@ -16,18 +15,3 @@ unsigned char fpga_number[9][10] = {
 	{0x7f,0x7f,0x63,0x63,0x03,0x03,0x03,0x03,0x03,0x03}, // 7
 	{0x3e,0x7f,0x63,0x63,0x7f,0x7f,0x63,0x63,0x7f,0x3e}, // 8
 };
-
-/**
- * dot_matrix_init - initializes @dot_matrix_addr to @init of @param
- *
- * @dot_matrix_addr: the address of Dot Matrix device
- * @param:           command line argument from user program
- */
-inline void dot_matrix_init(unsigned char *dot_matrix_addr, struct args *param);
-
-/**
- * dot_matrix_exit - initializes @dot_matrix_addr to zero value
- *
- * @dot_matrix_addr: the address of Dot Matrix device
- */
-inline void dot_matrix_exit(unsigned char *dot_matrix_addr);

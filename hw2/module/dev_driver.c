@@ -11,10 +11,7 @@
 #include <linux/module.h>
 
 #include "args.h"
-#include "fpga_led.h"
-#include "fpga_fnd.h"
-#include "fpga_text_lcd.h"
-#include "fpga_dot.h"
+#include "fpga_dot_font.h"
 
 #define LED_ADDRESS        0x08000016
 #define FND_ADDRESS        0x08000024
@@ -28,7 +25,154 @@ static unsigned char *fnd_addr;
 static unsigned char *text_lcd_addr;
 static unsigned char *dot_matrix_addr;
 
+const char STU_NO[16] = "120210207";
+const char NAME[16]   = "Sanha Maeng";
+
+unsigned char fpga_number[9][10] = {
+	{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}, // blank
+	{0x0c,0x1c,0x1c,0x0c,0x0c,0x0c,0x0c,0x0c,0x0c,0x1e}, // 1
+	{0x7e,0x7f,0x03,0x03,0x3f,0x7e,0x60,0x60,0x7f,0x7f}, // 2
+	{0xfe,0x7f,0x03,0x03,0x7f,0x7f,0x03,0x03,0x7f,0x7e}, // 3
+	{0x66,0x66,0x66,0x66,0x66,0x66,0x7f,0x7f,0x06,0x06}, // 4
+	{0x7f,0x7f,0x60,0x60,0x7e,0x7f,0x03,0x03,0x7f,0x7e}, // 5
+	{0x60,0x60,0x60,0x60,0x7e,0x7f,0x63,0x63,0x7f,0x3e}, // 6
+	{0x7f,0x7f,0x63,0x63,0x03,0x03,0x03,0x03,0x03,0x03}, // 7
+	{0x3e,0x7f,0x63,0x63,0x7f,0x7f,0x63,0x63,0x7f,0x3e}, // 8
+};
+
 struct args *param;
+
+/**
+ * get_init_val - returns initial value of @param
+ *
+ * @param: command line argument from user program
+ */
+inline unsigned int get_init_val(struct args *param) {
+  unsigned int init = param->init;
+  if (0 < init/1000) return init/1000;
+  if (0 < init/100)  return init/100;
+  if (0 < init/10)   return init/10;
+  return init;
+}
+
+/**
+ * led_init - initializes @led_addr to @init of @param
+ *
+ * @led_addr: the address of LED device
+ * @param:    command line argument from user program
+ */
+inline void led_init(unsigned char *led_addr, struct args *param) {
+  switch (get_init_val(param)) {
+    case 1:
+      *led_addr = 0x80;
+      break;
+    case 2:
+      *led_addr = 0x40;
+      break;
+    case 3:
+      *led_addr = 0x20;
+      break;
+    case 4:
+      *led_addr = 0x10;
+      break;
+    case 5:
+      *led_addr = 0x08;
+      break;
+    case 6:
+      *led_addr = 0x04;
+      break;
+    case 7:
+      *led_addr = 0x02;
+      break;
+    case 8:
+      *led_addr = 0x01;
+      break;
+    default:
+      // no such case
+      break;
+  }
+}
+
+/**
+ * led_exit - initializes @led_addr to zero value
+ *
+ * @led_addr: the address of LED device
+ */
+inline void led_exit(unsigned char *led_addr) { *led_addr = 0x00; }
+
+/**
+ * fnd_init - initializes @fnd_addr to @init of @param
+ *
+ * @fnd_addr: the address of FND device
+ * @param:    command line argument from user program
+ */
+inline void fnd_init(unsigned char *fnd_addr, struct args *param) {
+  unsigned char val = param->init;
+  fnd_addr[0]       = val/1000;
+  val               %= 1000;
+  fnd_addr[1]       = val/100;
+  val               %= 100;
+  fnd_addr[2]       = val/10;
+  val               %= 10;
+  fnd_addr[3]       = val;
+}
+
+/**
+ * fnd_exit - initializes @fnd_addr to zero value
+ *
+ * @fnd_addr: the address of FND device
+ */
+inline void fnd_exit(unsigned char *fnd_addr) {
+  fnd_addr[0] = 0x00;
+  fnd_addr[1] = 0x00;
+  fnd_addr[2] = 0x00;
+  fnd_addr[3] = 0x00;
+}
+
+/**
+ * text_lcd_init - initializes @text_lcd_addr to @STU_NO and @NAME
+ *
+ * @text_lcd_addr: the address of Text LCD device
+ */
+inline void text_lcd_init(unsigned char *text_lcd_addr) {
+  unsigned int i;
+  for (i=15; 0 <= i; --i) {
+    text_lcd_addr[i]    = STU_NO[i];
+    text_lcd_addr[i+16] = NAME[i];
+  }
+}
+
+/**
+ * text_lcd_exit - initialzies @text_lcd_addr to zero value
+ *
+ * @text_lcd_addr: the address of Text LCD device
+ */
+inline void text_lcd_exit(unsigned char *text_lcd_addr) {
+  unsigned int i;
+  for (i=31; 0 <= i; --i) text_lcd_addr[i] = 0x20;
+}
+
+/**
+ * dot_matrix_init - initializes @dot_matrix_addr to @init of @param
+ *
+ * @dot_matrix_addr: the address of Dot Matrix device
+ * @param:           command line argument from user program
+ */
+inline void dot_matrix_init(unsigned char *dot_matrix_addr, struct args *param) {
+  const unsigned char number[10] = fpga_number[get_init_val(param)];
+  unsigned int i;
+  for (i=9; 0 <= i; --i) dot_matrix_addr[i] = number[i];
+}
+
+/**
+ * dot_matrix_exit - initializes @dot_matrix_addr to zero value
+ *
+ * @dot_matrix_addr: the address of Dot Matrix device
+ */
+inline void dot_matrix_exit(unsigned char *dot_matrix_addr) {
+  unsigned int i;
+  for (i=9; 0 <= i; --i) dot_matrix_addr[i] = 0x00;
+}
 
 /**
  * timer_open - device driver opening event
