@@ -30,9 +30,6 @@ static unsigned char *dot_matrix_addr;
 
 struct args *param;
 
-static int __init timer_init();
-static void __exit timer_exit();
-
 /**
  * get_init_val - returns initial value of @param
  *
@@ -69,15 +66,15 @@ static inline void fnd_write(unsigned char *fnd_addr, const char *data) {
  */
 static inline void fnd_init(unsigned char *fnd_addr, struct args *param) {
   unsigned char value[4];
-  int val  = param->init;
-  value[0] = val/1000;
-  val      %= 1000;
-  value[1] = val/100;
-  val      %= 100;
-  value[2] = val/10;
-  val      %= 10;
-  value[3] = val;
-  printk("fnd_init: %s\n", value);
+  memset(value, 0x00, 4);
+  // int val  = param->init;
+  // value[0] = val/1000;
+  // val      %= 1000;
+  // value[1] = val/100;
+  // val      %= 100;
+  // value[2] = val/10;
+  // val      %= 10;
+  // value[3] = val;
   fnd_write(fnd_addr, value);
 }
 
