@@ -66,15 +66,14 @@ static inline void fnd_write(unsigned char *fnd_addr, const char *data) {
  */
 static inline void fnd_init(unsigned char *fnd_addr, struct args *param) {
   unsigned char value[4];
-  memset(value, 0x00, 4);
-  // int val  = param->init;
-  // value[0] = val/1000;
-  // val      %= 1000;
-  // value[1] = val/100;
-  // val      %= 100;
-  // value[2] = val/10;
-  // val      %= 10;
-  // value[3] = val;
+  int val  = param->init;
+  value[0] = val/1000;
+  val      %= 1000;
+  value[1] = val/100;
+  val      %= 100;
+  value[2] = val/10;
+  val      %= 10;
+  value[3] = val;
   fnd_write(fnd_addr, value);
 }
 
@@ -232,10 +231,10 @@ static int timer_open(struct inode *minode, struct file *mfile) {
   printk("%s open\n", DEV_DRIVER);
 
   // map devices to kernel space
-  fnd_addr        = ioremap(FND_ADDRESS, 0x04);
-  led_addr        = ioremap(LED_ADDRESS, 0x01);
-  text_lcd_addr   = ioremap(TEXT_LCD_ADDRESS, 0x32);
-  dot_matrix_addr = ioremap(DOT_MATRIX_ADDRESS, 0x10);
+  // fnd_addr        = ioremap(FND_ADDRESS, 0x04);
+  // led_addr        = ioremap(LED_ADDRESS, 0x01);
+  // text_lcd_addr   = ioremap(TEXT_LCD_ADDRESS, 0x32);
+  // dot_matrix_addr = ioremap(DOT_MATRIX_ADDRESS, 0x10);
 
   return 0;
 }
@@ -255,10 +254,10 @@ static int timer_release(struct inode *minode, struct file *mfile) {
   // dot_matrix_exit(dot_matrix_addr);
 
   // unmap devices
-  iounmap(fnd_addr);
-  iounmap(led_addr);
-  iounmap(text_lcd_addr);
-  iounmap(dot_matrix_addr);
+  // iounmap(fnd_addr);
+  // iounmap(led_addr);
+  // iounmap(text_lcd_addr);
+  // iounmap(dot_matrix_addr);
 
   return 0;
 }
@@ -275,10 +274,10 @@ static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) 
     case 0:
       // initialize parameters and devices using @arg
       param = (struct args *)arg;
-      led_init(led_addr, param);
-      fnd_init(fnd_addr, param);
-      text_lcd_init(text_lcd_addr);
-      dot_matrix_init(dot_matrix_addr, param);
+      // fnd_init(fnd_addr, param);
+      // led_init(led_addr, param);
+      // text_lcd_init(text_lcd_addr);
+      // dot_matrix_init(dot_matrix_addr, param);
       break;
     case 1:
       // run timer application
