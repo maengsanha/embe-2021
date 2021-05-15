@@ -1,7 +1,7 @@
 /*
  * Embedded System Software, 2021
  *
- * fpga_dot.h - FPGA Dot Matrix device utility definition
+ * fpga_dot_font.h - FPGA Dot Matrix device utility definition
  */
 
 unsigned char fpga_number[9][10] = {
