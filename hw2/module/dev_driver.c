@@ -109,7 +109,7 @@ static inline void led_exit(unsigned char *led_addr) { led_write((unsigned short
 static inline void fnd_write(unsigned char *fnd_addr, const char *data) {
   unsigned char  value[4];
   unsigned short s_value;
-  strcpy(&value, data, 4);
+  strcpy(&value, data);
   s_value = (value[0] << 12) | (value[1] << 8) | (value[2] << 4) | value[3];
   outw(s_value, (unsigned int)fnd_addr);
 }
@@ -156,8 +156,8 @@ static inline void text_lcd_write(unsigned char *text_lcd_addr, const char *high
   unsigned int   i;
   unsigned short s_value;
   unsigned char  value[33];
-  strcpy(&value, high, 16);
-  strcpy(&value[16], low, 16);
+  strcpy(&value, high);
+  strcpy(&value[16], low);
   value[32] = 0;
 
   for (i=0; i<32; i+=2) {
