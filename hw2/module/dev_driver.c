@@ -9,6 +9,7 @@
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
+#include <linux/ioport.h>
 
 #include "args.h"
 #include "fpga_text_lcd_util.h"
@@ -50,28 +51,28 @@ static inline unsigned int get_init_val(struct args *param) {
 static inline void led_init(unsigned char *led_addr, struct args *param) {
   switch (get_init_val(param)) {
     case 1:
-      *led_addr = 0x80;
+      outw((unsigned short)0x80, (unsigned int)led_addr);
       break;
     case 2:
-      *led_addr = 0x40;
+      outw((unsigned short)0x40, (unsigned int)led_addr);
       break;
     case 3:
-      *led_addr = 0x20;
+      outw((unsigned short)0x20, (unsigned int)led_addr);
       break;
     case 4:
-      *led_addr = 0x10;
+      outw((unsigned short)0x10, (unsigned int)led_addr);
       break;
     case 5:
-      *led_addr = 0x08;
+      outw((unsigned short)0x08, (unsigned int)led_addr);
       break;
     case 6:
-      *led_addr = 0x04;
+      outw((unsigned short)0x04, (unsigned int)led_addr);
       break;
     case 7:
-      *led_addr = 0x02;
+      outw((unsigned short)0x02, (unsigned int)led_addr);
       break;
     case 8:
-      *led_addr = 0x01;
+      outw((unsigned short)0x01, (unsigned int)led_addr);
       break;
     default:
       // no such case
@@ -84,7 +85,7 @@ static inline void led_init(unsigned char *led_addr, struct args *param) {
  *
  * @led_addr: the address of LED device
  */
-static inline void led_exit(unsigned char *led_addr) { *led_addr = 0x00; }
+static inline void led_exit(unsigned char *led_addr) { outw((unsigned short)0x00, (unsigned int)led_addr); }
 
 /**
  * fnd_init - initializes @fnd_addr to @init of @param
@@ -93,14 +94,17 @@ static inline void led_exit(unsigned char *led_addr) { *led_addr = 0x00; }
  * @param:    command line argument from user program
  */
 static inline void fnd_init(unsigned char *fnd_addr, struct args *param) {
-  unsigned char val = param->init;
-  fnd_addr[0]       = val/1000;
-  val               %= 1000;
-  fnd_addr[1]       = val/100;
-  val               %= 100;
-  fnd_addr[2]       = val/10;
-  val               %= 10;
-  fnd_addr[3]       = val;
+  unsigned char value[4];
+  unsigned int val           = param->init;
+  value[0]                   = val/1000;
+  val                        %= 1000;
+  value[1]                   = val/100;
+  val                        %= 100;
+  value[2]                   = val/10;
+  val                        %= 10;
+  value[3]                   = val;
+  unsigned short value_short = value[0] << 12 | value[1] << 8 | value[2] << 4 | value[3];
+  outw(value_short, (unsigned int)fnd_addr);
 }
 
 /**
@@ -108,12 +112,7 @@ static inline void fnd_init(unsigned char *fnd_addr, struct args *param) {
  *
  * @fnd_addr: the address of FND device
  */
-static inline void fnd_exit(unsigned char *fnd_addr) {
-  fnd_addr[0] = 0x00;
-  fnd_addr[1] = 0x00;
-  fnd_addr[2] = 0x00;
-  fnd_addr[3] = 0x00;
-}
+static inline void fnd_exit(unsigned char *fnd_addr) { outw((unsigned short)0x00, (unsigned int)fnd_addr); }
 
 /**
  * text_lcd_init - initializes @text_lcd_addr to @STU_NO and @NAME
@@ -121,10 +120,18 @@ static inline void fnd_exit(unsigned char *fnd_addr) {
  * @text_lcd_addr: the address of Text LCD device
  */
 static inline void text_lcd_init(unsigned char *text_lcd_addr) {
-  unsigned int i;
-  for (i=15; 0 <= i; --i) {
-    text_lcd_addr[i]    = STU_NO[i];
-    text_lcd_addr[i+16] = NAME[i];
+  int i;
+  unsigned short s_value = 0;
+  unsigned char value[33];
+  for (i=0; i<16; ++i) {
+    value[i]    = STU_NO[i];
+    value[i+16] = NAME[i];
+  }
+  value[32] = 0;
+
+  for (i=0; i<32; i+=2) {
+    s_value = (value[i] & 0xFF) << 8 | value[i+1] & 0xFF;
+    outw(s_value, (unsigned int)text_lcd_addr);
   }
 }
 
@@ -134,8 +141,9 @@ static inline void text_lcd_init(unsigned char *text_lcd_addr) {
  * @text_lcd_addr: the address of Text LCD device
  */
 static inline void text_lcd_exit(unsigned char *text_lcd_addr) {
-  unsigned int i;
-  for (i=31; 0 <= i; --i) text_lcd_addr[i] = 0x20;
+  int i;
+  for (i=0; i<32; i+=2)
+    outw(0x20 & 0xFF << 8 | 0x20 & 0xFF, (unsigned int)text_lcd_addr);
 }
 
 /**
@@ -145,9 +153,13 @@ static inline void text_lcd_exit(unsigned char *text_lcd_addr) {
  * @param:           command line argument from user program
  */
 static inline void dot_matrix_init(unsigned char *dot_matrix_addr, struct args *param) {
-  unsigned int i        = get_init_val(param);
-  unsigned char *number = fpga_number[i];
-  for (i=9; 0 <= i; --i) dot_matrix_addr[i] = number[i];
+  int i;
+  unsigned short s_value;
+  unsigned char *value = fpga_number[get_init_val(param)];
+  for (i=0; i<10; ++i) {
+    s_value = value[i] & 0x7F;
+    outw(s_value, (unsigned int)dot_matrix_addr+i*2);
+  }
 }
 
 /**
@@ -156,8 +168,11 @@ static inline void dot_matrix_init(unsigned char *dot_matrix_addr, struct args *
  * @dot_matrix_addr: the address of Dot Matrix device
  */
 static inline void dot_matrix_exit(unsigned char *dot_matrix_addr) {
-  unsigned int i;
-  for (i=9; 0 <= i; --i) dot_matrix_addr[i] = 0x00;
+  int i;
+  for (i=0; i<10; ++i) {
+    s_value = 0x00;
+    outw((unsigned short)0x00, (unsigned int)dot_matrix_addr+i*2);
+  }
 }
 
 /**
@@ -170,10 +185,10 @@ static int timer_open(struct inode *minode, struct file *mfile) {
   printk("%s open\n", DEV_DRIVER);
 
   // map devices to kernel space
-  led_addr        = ioremap(LED_ADDRESS, 1);
-  fnd_addr        = ioremap(FND_ADDRESS, 4);
-  text_lcd_addr   = ioremap(TEXT_LCD_ADDRESS, 32);
-  dot_matrix_addr = ioremap(DOT_MATRIX_ADDRESS, 10);
+  led_addr        = ioremap(LED_ADDRESS, 0x01);
+  fnd_addr        = ioremap(FND_ADDRESS, 0x04);
+  text_lcd_addr   = ioremap(TEXT_LCD_ADDRESS, 0x32);
+  dot_matrix_addr = ioremap(DOT_MATRIX_ADDRESS, 0x10);
 
   return 0;
 }
