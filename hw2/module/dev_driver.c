@@ -145,7 +145,7 @@ inline void text_lcd_exit(unsigned char *text_lcd_addr) {
  * @param:           command line argument from user program
  */
 inline void dot_matrix_init(unsigned char *dot_matrix_addr, struct args *param) {
-  const unsigned char number[10] = fpga_number[get_init_val(param)];
+  unsigned char number[10] = fpga_number[get_init_val(param)];
   unsigned int i;
   for (i=9; 0 <= i; --i) dot_matrix_addr[i] = number[i];
 }
