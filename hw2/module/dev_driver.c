@@ -30,6 +30,9 @@ static unsigned char *dot_matrix_addr;
 
 struct args *param;
 
+static int __init timer_init();
+static void __exit timer_exit();
+
 /**
  * get_init_val - returns initial value of @param
  *
@@ -74,6 +77,7 @@ static inline void fnd_init(unsigned char *fnd_addr, struct args *param) {
   value[2] = val/10;
   val      %= 10;
   value[3] = val;
+  printk("fnd_init: %s\n", value);
   fnd_write(fnd_addr, value);
 }
 
@@ -152,17 +156,16 @@ static inline void led_exit(unsigned char *led_addr) { led_write(led_addr, (unsi
  * @low:           the data to write to second line of @text_lcd_addr
  */
 static inline void text_lcd_write(unsigned char *text_lcd_addr, const char *high, const char *low) {
-  int i;
+  unsigned int i;
   unsigned short s_value;
   unsigned char  value[33];
   strcpy(value, high);
   strcpy(&value[16], low);
   value[32] = 0;
 
-  for (i=0; i<32; ++i) {
-    s_value = (value[i] & 0xFF) << 8 | value[i+1] & 0xFF;
+  for (i=0; i<32; i+=2) {
+    s_value = (value[i] & 0xFF) << 8 | (value[i+1] & 0xFF);
     outw(s_value, (unsigned int)text_lcd_addr+i);
-    ++i;
   }
 }
 
@@ -195,7 +198,7 @@ static inline void text_lcd_exit(unsigned char *text_lcd_addr) {
  * @data:            the data to write to @dot_matrix_addr
  */
 static inline void dot_matrix_write(unsigned char *dot_matrix_addr, const char *data) {
-  int i;
+  unsigned int i;
   unsigned char value[10];
   unsigned short s_value;
   strcpy(value, data);
