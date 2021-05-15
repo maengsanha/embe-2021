@@ -9,26 +9,50 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
+#include "args.h"
+
+#define DEV_DRIVER "/dev/dev_driver"
+#define MAG_NUMBER 'T'
+#define SET_OPTION _IOW(MAG_NUMBER, 1, int)
+#define COMMAND    _IOW(MAG_NUMBER, 2, int)
+
 int main(int argc, char **argv) {
   if (argc != 4) {
     printf("expected 3 arguments, got %d\n", argc-1);
     return 1;
   }
 
-  const char *DEVICE_DRIVER  = "/dev/dev_driver";
   const char *TIMER_INTERVAL = argv[1];
   const char *TIMER_CNT      = argv[2];
   const char *TIMER_INIT     = argv[3];
-  const int  interval        = atoi(TIMER_INTERVAL);
-  const int  cnt             = atoi(TIMER_CNT);
-  const int  init            = atoi(TIMER_INIT);
 
+  struct args param = {
+    .interval = atoi(TIMER_INTERVAL),
+    .cnt      = atoi(TIMER_CNT),
+    .init     = atoi(TIMER_INIT),
+  };
+
+  // open device
   int fd;
-  if ((fd = open(DEVICE_DRIVER, O_RDWR)) < 0) {
-    printf("open %s failed\n", DEVICE_DRIVER);
+  if ((fd = open(DEV_DRIVER, O_WRONLY)) < 0) {
+    printf("open %s failed\n", DEV_DRIVER);
     close(fd);
     return 1;
   }
 
-  return 0;
+  // deliver device driver option
+  if (ioctl(fd, SET_OPTION, &param) < 0) {
+    printf("ioctl 1 failed\n");
+    close(fd);
+    return 1;
+  }
+
+  // run timer device driver
+  if (ioctl(fd, COMMAND) < 0) {
+    printf("ioctl 2 failed\n");
+    close(fd);
+    return 1;
+  }
+
+  close(fd);
 }
