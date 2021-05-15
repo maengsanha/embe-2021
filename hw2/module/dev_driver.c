@@ -7,23 +7,18 @@
 #include <asm/uaccess.h>
 #include <linux/fs.h>
 #include <linux/init.h>
-#include <linux/module.h>
 #include <linux/kernel.h>
+#include <linux/module.h>
 
-#define FND_ADDRESS        0x08000024
 #define LED_ADDRESS        0x08000016
+#define FND_ADDRESS        0x08000024
 #define TEXT_LCD_ADDRESS   0x08000090
 #define DOT_MATRIX_ADDRESS 0x08000210
+#define DEV_DRIVER         "/dev/dev_driver"
+#define DEV_MAJOR          242
 
-#define FND_DEVICE        "/dev/fpga_fnd"
-#define LED_DEVICE        "/dev/fpga_led"
-#define TEXT_LCD_DEVICE   "/dev/fpga_text_lcd"
-#define DOT_MATRIX_DEVICE "/dev/fpga_dot"
-#define DEV_DRIVER        "/dev/dev_driver"
-#define DEV_MAJOR         242
-
-static unsigned char *fnd_addr;
 static unsigned char *led_addr;
+static unsigned char *fnd_addr;
 static unsigned char *text_lcd_addr;
 static unsigned char *dot_matrix_addr;
 
@@ -48,10 +43,10 @@ int timer_open(struct inode *minode, struct file *mfile) {
   printk("%s open\n", DEV_DRIVER);
 
   // map devices to kernel space
-  fnd_addr        = ioremap(FND_ADDRESS, 0x04);
-  led_addr        = ioremap(LED_ADDRESS, 0x01);
-  text_lcd_addr   = ioremap(TEXT_LCD_ADDRESS, 0x32);
-  dot_matrix_addr = ioremap(DOT_MATRIX_ADDRESS, 0x10);
+  led_addr        = ioremap(LED_ADDRESS, 1);
+  fnd_addr        = ioremap(FND_ADDRESS, 4);
+  text_lcd_addr   = ioremap(TEXT_LCD_ADDRESS, 32);
+  dot_matrix_addr = ioremap(DOT_MATRIX_ADDRESS, 10);
 
   return 0;
 }
@@ -66,8 +61,8 @@ int timer_release(struct inode *minode, struct file *mfile) {
   printk("%s close\n", DEV_DRIVER);
 
   // unmap devices
-  iounmap(fnd_addr);
   iounmap(led_addr);
+  iounmap(fnd_addr);
   iounmap(text_lcd_addr);
   iounmap(dot_matrix_addr);
 
@@ -85,6 +80,7 @@ int timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
   // initialize or run devices
   switch (cmd) {
     default:
+      *led = 0xFF;
       break;
   }
 

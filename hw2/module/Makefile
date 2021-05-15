@@ -19,4 +19,4 @@ clean:
 	rm -rf Module.symvers
 	rm -rf modules.order
 	rm -rf .tmp*
-	rm -rf .cmd
+	rm -rf .dev*
