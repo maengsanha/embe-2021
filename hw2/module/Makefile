@@ -11,10 +11,6 @@ driver:
 app:
 	arm-none-linux-gnueabi-gcc -static -o dev_driver dev_driver.c
 
-install:
-	cp -a dev_driver.ko /nfsroot
-	cp -a dev_driver /nfsroot
-
 clean:
 	rm -rf *.ko
 	rm -rf *.mod.*
