@@ -3,12 +3,9 @@
  *
  * fpga_text_lcd.h - FPGA Text LCD device utility functions definition
  */
-#include <string.h>
-
-#include "args.h"
 
 const char STU_NO[16] = "120210207";
-const char NAME[16] = "Sanha Maeng";
+const char NAME[16]   = "Sanha Maeng";
 
 /**
  * text_lcd_init - initializes @text_lcd_addr to @STU_NO and @NAME

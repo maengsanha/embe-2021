@@ -3,8 +3,6 @@
  *
  * fpga_dot.h - FPGA Dot Matrix device utility functions definition
  */
-#include <string.h>
-
 #include "args.h"
 
 unsigned char fpga_number[9][10] = {

@@ -11,8 +11,11 @@
  * @text_lcd_addr: the address of Text LCD device
  */
 inline void text_lcd_init(unsigned char *text_lcd_addr) {
-  memcpy(text_lcd_addr, STU_NO, 16);
-  memcpy(&text_lcd_addr[16], NAME, 16);
+  unsigned int i;
+  for (i=15; 0 <= i; --i) {
+    text_lcd_addr[i]    = STU_NO[i];
+    text_lcd_addr[i+16] = NAME[i];
+  }
 }
 
 /**
@@ -20,4 +23,7 @@ inline void text_lcd_init(unsigned char *text_lcd_addr) {
  *
  * @text_lcd_addr: the address of Text LCD device
  */
-inline void text_lcd_exit(unsigned char *text_lcd_addr) { memset(text_lcd_addr, 0x20, 32); }
+inline void text_lcd_exit(unsigned char *text_lcd_addr) {
+  unsigned int i;
+  for (i=31; 0 <= i; --i) text_lcd_addr[i] = 0x20;
+}
