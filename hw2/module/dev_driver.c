@@ -3,15 +3,12 @@
  *
  * module/dev_driver.c - timer deivce driver
  */
-#include <linux/module.h>
-#include <linux/fs.h>
-#include <linux/init.h>
-#include <linux/platform_device.h>
-#include <linux/delay.h>
 #include <asm/io.h>
 #include <asm/uaccess.h>
+#include <linux/fs.h>
+#include <linux/init.h>
+#include <linux/module.h>
 #include <linux/kernel.h>
-#include <linux/version.h>
 
 #define FND_ADDRESS        0x08000024
 #define LED_ADDRESS        0x08000016
