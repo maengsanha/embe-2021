@@ -33,13 +33,17 @@ static struct args {
   int init;
 };
 
+static int interval = 0;
+static int cnt = 0;
+static int init = 0;
+
 /**
  * timer_open - device driver opening event
  *
  * @minode: not used
  * @mfile:  not used
  */
-int timer_open(struct inode *minode, struct file *mfile) {
+static int timer_open(struct inode *minode, struct file *mfile) {
   printk("%s open\n", DEV_DRIVER);
 
   // map devices to kernel space
@@ -57,7 +61,7 @@ int timer_open(struct inode *minode, struct file *mfile) {
  * @minode: not used
  * @mfile:  not used
  */
-int timer_release(struct inode *minode, struct file *mfile) {
+static int timer_release(struct inode *minode, struct file *mfile) {
   printk("%s close\n", DEV_DRIVER);
 
   // unmap devices
@@ -76,11 +80,22 @@ int timer_release(struct inode *minode, struct file *mfile) {
  * @cmd:   command
  * @arg:   parameters delivered from user-level ioctl
  */
-int timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
-  // initialize or run devices
-  switch (cmd) {
+static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
+  switch (_IOC_NR(cmd)) {
+    case 0:
+      // initialize devices using @arg
+      struct args *param = (struct args *)arg;
+      interval           = param->interval;
+      cnt                = param->cnt;
+      init               = param->init;
+      printk("interval: %d, cnt: %d, init: %d\n", interval, cnt, init);
+      break;
+    case 1:
+      // run timer application
+      printk("run app\n");
+      break;
     default:
-      *led_addr = 0xFF;
+      // no such case
       break;
   }
 
