@@ -53,7 +53,7 @@ static inline int get_init_val(struct args *param) {
 static inline void fnd_write(unsigned char *fnd_addr, const char *data) {
   unsigned char  value[4];
   unsigned short s_value;
-  strcpy(&value, data);
+  strcpy(value, data);
   s_value = (value[0] << 12) | (value[1] << 8) | (value[2] << 4) | value[3];
   outw(s_value, (unsigned int)fnd_addr);
 }
@@ -74,7 +74,7 @@ static inline void fnd_init(unsigned char *fnd_addr, struct args *param) {
   value[2]         = val/10;
   val              %= 10;
   value[3]         = val;
-  fnd_write(fnd_addr, &value);
+  fnd_write(fnd_addr, value);
 }
 
 /**
@@ -84,7 +84,7 @@ static inline void fnd_init(unsigned char *fnd_addr, struct args *param) {
  */
 static inline void fnd_exit(unsigned char *fnd_addr) {
   unsigned char value[4] = {0x00, 0x00, 0x00, 0x00};
-  fnd_write(fnd_addr, &value);
+  fnd_write(fnd_addr, value);
 }
 
 ///////////////////////////////////////////////////////// LED Device /////////////////////////////////////////////////////////
@@ -155,7 +155,7 @@ static inline void text_lcd_write(unsigned char *text_lcd_addr, const char *high
   unsigned int   i;
   unsigned short s_value;
   unsigned char  value[33];
-  strcpy(&value, high);
+  strcpy(value, high);
   strcpy(&value[16], low);
   value[32] = 0;
 
@@ -170,7 +170,7 @@ static inline void text_lcd_write(unsigned char *text_lcd_addr, const char *high
  *
  * @text_lcd_addr: the address of Text LCD device
  */
-static inline void text_lcd_init(unsigned char *text_lcd_addr) { text_lcd_write(text_lcd_addr, &STU_NO, &NAME); }
+static inline void text_lcd_init(unsigned char *text_lcd_addr) { text_lcd_write(text_lcd_addr, STU_NO, NAME); }
 
 /**
  * text_lcd_exit - initialzies @text_lcd_addr to zero value
@@ -182,7 +182,7 @@ static inline void text_lcd_exit(unsigned char *text_lcd_addr) {
   char low[16];
   memset(high, 0x20, 16);
   memset(low, 0x20, 16);
-  text_lcd_write(text_lcd_addr, &high, &low);
+  text_lcd_write(text_lcd_addr, high, low);
 }
 
 ///////////////////////////////////////////////////////// Dot Matrix Device /////////////////////////////////////////////////////////

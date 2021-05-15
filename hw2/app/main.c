@@ -18,7 +18,7 @@
 
 int main(int argc, char **argv) {
   if (argc != 4) {
-    printf("expected 3 arguments, got %d\n", argc-1);
+    printf("expected 3 arguments, but %d\n", argc-1);
     return 1;
   }
 
@@ -42,14 +42,14 @@ int main(int argc, char **argv) {
 
   // deliver device driver option
   if (ioctl(fd, SET_OPTION, &param) < 0) {
-    printf("ioctl 1 failed\n");
+    printf("ioctl (set option) failed\n");
     close(fd);
     return 1;
   }
 
   // run timer device driver
   if (ioctl(fd, COMMAND) < 0) {
-    printf("ioctl 2 failed\n");
+    printf("ioctl (command) failed\n");
     close(fd);
     return 1;
   }
