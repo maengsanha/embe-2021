@@ -62,28 +62,28 @@ static inline void led_write(unsigned char *led_addr, unsigned short data) { out
 static inline void led_init(unsigned char *led_addr, struct args *param) {
   switch (get_init_val(param)) {
     case 1:
-      led_write((unsigned short)0x80, led_addr);
+      led_write(led_addr, (unsigned short)0x80);
       break;
     case 2:
-      led_write((unsigned short)0x40, led_addr);
+      led_write(led_addr, (unsigned short)0x40);
       break;
     case 3:
-      led_write((unsigned short)0x20, led_addr);
+      led_write(led_addr, (unsigned short)0x20);
       break;
     case 4:
-      led_write((unsigned short)0x10, led_addr);
+      led_write(led_addr, (unsigned short)0x10);
       break;
     case 5:
-      led_write((unsigned short)0x08, led_addr);
+      led_write(led_addr, (unsigned short)0x08);
       break;
     case 6:
-      led_write((unsigned short)0x04, led_addr);
+      led_write(led_addr, (unsigned short)0x04);
       break;
     case 7:
-      led_write((unsigned short)0x02, led_addr);
+      led_write(led_addr, (unsigned short)0x02);
       break;
     case 8:
-      led_write((unsigned short)0x01, led_addr);
+      led_write(led_addr, (unsigned short)0x01);
       break;
     default:
       // no such case
@@ -96,7 +96,7 @@ static inline void led_init(unsigned char *led_addr, struct args *param) {
  *
  * @led_addr: the address of LED device
  */
-static inline void led_exit(unsigned char *led_addr) { led_write((unsigned short)0x00, led_addr); }
+static inline void led_exit(unsigned char *led_addr) { led_write(led_addr, (unsigned short)0x00); }
 
 ///////////////////////////////////////////////////////// FND Device /////////////////////////////////////////////////////////
 
