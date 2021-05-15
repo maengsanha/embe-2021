@@ -33,9 +33,7 @@ static struct args {
   int init;
 };
 
-static int interval = 0;
-static int cnt = 0;
-static int init = 0;
+static struct args *param;
 
 /**
  * timer_open - device driver opening event
@@ -81,15 +79,11 @@ static int timer_release(struct inode *minode, struct file *mfile) {
  * @arg:   parameters delivered from user-level ioctl
  */
 static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
-  struct args *param;
   switch (_IOC_NR(cmd)) {
     case 0:
       // initialize parameters using @arg
-      param    = (struct args *)arg;
-      interval = param->interval;
-      cnt      = param->cnt;
-      init     = param->init;
-      printk("interval: %d, cnt: %d, init: %d\n", interval, cnt, init);
+      param = (struct args *)arg;
+      printk("interval: %d, cnt: %d, init: %d\n", param->interval, param->cnt, param->init);
       break;
     case 1:
       // run timer application
