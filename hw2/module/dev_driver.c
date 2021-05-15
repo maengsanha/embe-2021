@@ -169,10 +169,8 @@ static inline void dot_matrix_init(unsigned char *dot_matrix_addr, struct args *
  */
 static inline void dot_matrix_exit(unsigned char *dot_matrix_addr) {
   int i;
-  for (i=0; i<10; ++i) {
-    s_value = 0x00;
+  for (i=0; i<10; ++i)
     outw((unsigned short)0x00, (unsigned int)dot_matrix_addr+i*2);
-  }
 }
 
 /**
