@@ -1,14 +1,14 @@
 obj-m   := dev_driver.o
 
-KDIR    :=/work/achroimx_kernel
-PWD     :=$(shell pwd)
+KDIR    := /work/achroimx_kernel
+PWD     := $(shell pwd)
 
-all: driver app
+all: setup driver
 
-driver:
+setup:
 	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) modules ARCH=arm
 
-app:
+driver:
 	arm-none-linux-gnueabi-gcc -static -o dev_driver dev_driver.c
 
 clean:

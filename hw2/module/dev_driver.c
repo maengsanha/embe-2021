@@ -3,13 +3,19 @@
  *
  * module/dev_driver.c - timer deivce driver
  */
-#include <unistd.h>
-#include <fcntl.h>
 #include <linux/fs.h>
 #include <linux/init.h>
+#include <linux/ioctl.h>
 #include <linux/module.h>
 #include <linux/kernel.h>
-#include <linux/ioctl.h>
+#include <linux/uaccess.h>
+#include <linux/platform_device.h>
+#include <asm-generic/io.h>
+
+#define FND_ADDRESS        0x08000024
+#define LED_ADDRESS        0x08000016
+#define TEXT_LCD_ADDRESS   0x08000090
+#define DOT_MATRIX_ADDRESS 0x08000210
 
 #define FND_DEVICE        "/dev/fpga_fnd"
 #define LED_DEVICE        "/dev/fpga_led"
@@ -17,6 +23,11 @@
 #define DOT_MATRIX_DEVICE "/dev/fpga_dot"
 #define DEV_DRIVER        "/dev/dev_driver"
 #define DEV_MAJOR         242
+
+static unsigned char *fnd_addr;
+static unsigned char *led_addr;
+static unsigned char *text_lcd_addr;
+static unsigned char *dot_matrix_addr;
 
 /**
  * struct args - same as user-level struct args
@@ -29,8 +40,6 @@ static struct args {
   int init;
 };
 
-int fnd_fd, led_fd, text_lcd_fd, dot_fd;
-
 /**
  * timer_open - device driver opening event
  *
@@ -41,30 +50,10 @@ int timer_open(struct inode *minode, struct file *mfile) {
   printk("%s open\n", DEV_DRIVER);
 
   // open devices
-  if ((fnd_fd = open(FND_DEVICE, O_RDWR)) < 0) {
-    printk("open %s failed\n", FND_DEVICE);
-    return fnd_fd;
-  }
-  if ((led_fd = open(LED_DEVICE, O_RDWR)) < 0) {
-    printk("open %s failed\n", LED_DEVICE);
-    close(fnd_fd);
-    return led_fd;
-  }
-  if ((text_lcd_fd = open(TEXT_LCD_DEVICE, O_WRONLY)) < 0) {
-    printk("open %s failed\n", TEXT_LCD_DEVICE);
-    close(fnd_fd);
-    close(led_fd);
-    return text_lcd_fd;
-  }
-  if ((dot_fd = open(DOT_MATRIX_DEVICE, O_WRONLY)) < 0) {
-    printk("open %s failed\n", DOT_MATRIX_DEVICE);
-    close(fnd_fd);
-    close(led_fd);
-    close(text_lcd_fd);
-    return dot_fd;
-  }
-
-  // TODO
+  fnd_addr        = ioremap(FND_ADDRESS, 0x04);
+  led_addr        = ioremap(LED_ADDRESS, 0x01);
+  text_lcd_addr   = ioremap(TEXT_LCD_ADDRESS, 0x32);
+  dot_matrix_addr = ioremap(DOT_MATRIX_ADDRESS, 0x10);
 
   return 0;
 }
@@ -79,10 +68,10 @@ int timer_release(struct inode *minode, struct file *mfile) {
   printk("%s close\n", DEV_DRIVER);
 
   // close devices
-  close(fnd_fd);
-  close(led_fd);
-  close(text_lcd_fd);
-  close(dot_fd);
+  iounmap(fnd_addr);
+  iounmap(led_addr);
+  iounmap(text_lcd_addr);
+  iounmap(dot_matrix_addr);
 
   return 0;
 }
@@ -109,10 +98,10 @@ static struct file_operations timer_fops = {
 };
 
 /**
- * timer_init - executed when insmod
+ * timer_init - registers device (executed on insmod)
  */
 int __init timer_init() {
-	printk("timer init\n");
+	printk("%s init\n", DEV_DRIVER);
 
   int major;
 
@@ -127,12 +116,11 @@ int __init timer_init() {
 }
 
 /**
- * timer_exit - executed when rmmod
+ * timer_exit - unregisters device (executed on rmmod)
  */
 void __exit timer_exit() {
-	printk("timer exit\n");
-
 	unregister_chrdev(DEV_MAJOR, DEV_DRIVER);
+  printk("%s exit\n", DEV_DRIVER);
 }
 
 module_init(timer_init);
