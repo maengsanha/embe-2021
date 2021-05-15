@@ -12,7 +12,7 @@
  * @param:           command line argument from user program
  */
 inline void dot_matrix_init(unsigned char *dot_matrix_addr, struct args *param) {
-  const char number[10] = fpga_number[get_init_val(param)];
+  char number[10] = fpga_number[get_init_val(param)];
   unsigned int i;
   for (i=9; 0 <= i; --i) dot_matrix_addr[i] = number[i];
 }

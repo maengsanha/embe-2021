@@ -3,6 +3,7 @@
  *
  * args.c - user-level struct args implementation
  */
+#include "args.h"
 
 /**
  * get_init_val - returns initial value of @param
