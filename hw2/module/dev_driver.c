@@ -80,12 +80,11 @@ int timer_release(struct inode *minode, struct file *mfile) {
 /**
  * timer_ioctl - ioctl event
  *
- * @inode: not used
  * @filp:  not used
  * @cmd:   command
  * @arg:   parameters delivered from user-level ioctl
  */
-int timer_ioctl(struct inode *inode, struct file *filp, unsigned int cmd, unsigned long arg) {
+int timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
   // initialize or run devices
   switch (cmd) {
     default:
