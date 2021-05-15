@@ -21,19 +21,19 @@
 #define DEV_DRIVER         "/dev/dev_driver"
 #define DEV_MAJOR          242
 
-static unsigned char *led_addr;
-static unsigned char *fnd_addr;
-static unsigned char *text_lcd_addr;
-static unsigned char *dot_matrix_addr;
+static volatile unsigned char *led_addr;
+static volatile unsigned char *fnd_addr;
+static volatile unsigned char *text_lcd_addr;
+static volatile unsigned char *dot_matrix_addr;
 
-struct args *param;
+volatile struct args *param;
 
 /**
  * get_init_val - returns initial value of @param
  *
  * @param: command line argument from user program
  */
-inline unsigned int get_init_val(struct args *param) {
+static inline unsigned int get_init_val(struct args *param) {
   unsigned int init = param->init;
   if (0 < init/1000) return init/1000;
   if (0 < init/100)  return init/100;
@@ -47,7 +47,7 @@ inline unsigned int get_init_val(struct args *param) {
  * @led_addr: the address of LED device
  * @param:    command line argument from user program
  */
-inline void led_init(unsigned char *led_addr, struct args *param) {
+static inline void led_init(unsigned char *led_addr, struct args *param) {
   switch (get_init_val(param)) {
     case 1:
       *led_addr = 0x80;
@@ -84,7 +84,7 @@ inline void led_init(unsigned char *led_addr, struct args *param) {
  *
  * @led_addr: the address of LED device
  */
-inline void led_exit(unsigned char *led_addr) { *led_addr = 0x00; }
+static inline void led_exit(unsigned char *led_addr) { *led_addr = 0x00; }
 
 /**
  * fnd_init - initializes @fnd_addr to @init of @param
@@ -92,7 +92,7 @@ inline void led_exit(unsigned char *led_addr) { *led_addr = 0x00; }
  * @fnd_addr: the address of FND device
  * @param:    command line argument from user program
  */
-inline void fnd_init(unsigned char *fnd_addr, struct args *param) {
+static inline void fnd_init(unsigned char *fnd_addr, struct args *param) {
   unsigned char val = param->init;
   fnd_addr[0]       = val/1000;
   val               %= 1000;
@@ -108,7 +108,7 @@ inline void fnd_init(unsigned char *fnd_addr, struct args *param) {
  *
  * @fnd_addr: the address of FND device
  */
-inline void fnd_exit(unsigned char *fnd_addr) {
+static inline void fnd_exit(unsigned char *fnd_addr) {
   fnd_addr[0] = 0x00;
   fnd_addr[1] = 0x00;
   fnd_addr[2] = 0x00;
@@ -120,7 +120,7 @@ inline void fnd_exit(unsigned char *fnd_addr) {
  *
  * @text_lcd_addr: the address of Text LCD device
  */
-inline void text_lcd_init(unsigned char *text_lcd_addr) {
+static inline void text_lcd_init(unsigned char *text_lcd_addr) {
   unsigned int i;
   for (i=15; 0 <= i; --i) {
     text_lcd_addr[i]    = STU_NO[i];
@@ -133,7 +133,7 @@ inline void text_lcd_init(unsigned char *text_lcd_addr) {
  *
  * @text_lcd_addr: the address of Text LCD device
  */
-inline void text_lcd_exit(unsigned char *text_lcd_addr) {
+static inline void text_lcd_exit(unsigned char *text_lcd_addr) {
   unsigned int i;
   for (i=31; 0 <= i; --i) text_lcd_addr[i] = 0x20;
 }
@@ -144,9 +144,9 @@ inline void text_lcd_exit(unsigned char *text_lcd_addr) {
  * @dot_matrix_addr: the address of Dot Matrix device
  * @param:           command line argument from user program
  */
-inline void dot_matrix_init(unsigned char *dot_matrix_addr, struct args *param) {
-  unsigned char number[10] = fpga_number[get_init_val(param)];
-  unsigned int i;
+static inline void dot_matrix_init(unsigned char *dot_matrix_addr, struct args *param) {
+  unsigned int i           = get_init_val(param);
+  unsigned char number[10] = fpga_number[i];
   for (i=9; 0 <= i; --i) dot_matrix_addr[i] = number[i];
 }
 
@@ -155,7 +155,7 @@ inline void dot_matrix_init(unsigned char *dot_matrix_addr, struct args *param) 
  *
  * @dot_matrix_addr: the address of Dot Matrix device
  */
-inline void dot_matrix_exit(unsigned char *dot_matrix_addr) {
+static inline void dot_matrix_exit(unsigned char *dot_matrix_addr) {
   unsigned int i;
   for (i=9; 0 <= i; --i) dot_matrix_addr[i] = 0x00;
 }
@@ -240,7 +240,7 @@ static struct file_operations timer_fops = {
 /**
  * timer_init - registers device (executed on insmod)
  */
-int __init timer_init() {
+static int __init timer_init() {
 	printk("%s init\n", DEV_DRIVER);
 
   if (register_chrdev(DEV_MAJOR, DEV_DRIVER, &timer_fops) < 0) {
@@ -256,7 +256,7 @@ int __init timer_init() {
 /**
  * timer_exit - unregisters device (executed on rmmod)
  */
-void __exit timer_exit() {
+static void __exit timer_exit() {
 	unregister_chrdev(DEV_MAJOR, DEV_DRIVER);
   printk("%s exit\n", DEV_DRIVER);
 }
