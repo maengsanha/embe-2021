@@ -50,7 +50,7 @@ static struct args {
 int timer_open(struct inode *minode, struct file *mfile) {
   printk("%s open\n", DEV_DRIVER);
 
-  // open devices
+  // map devices to kernel space
   fnd_addr        = ioremap(FND_ADDRESS, 0x04);
   led_addr        = ioremap(LED_ADDRESS, 0x01);
   text_lcd_addr   = ioremap(TEXT_LCD_ADDRESS, 0x32);
@@ -68,7 +68,7 @@ int timer_open(struct inode *minode, struct file *mfile) {
 int timer_release(struct inode *minode, struct file *mfile) {
   printk("%s close\n", DEV_DRIVER);
 
-  // close devices
+  // unmap devices
   iounmap(fnd_addr);
   iounmap(led_addr);
   iounmap(text_lcd_addr);
@@ -80,19 +80,24 @@ int timer_release(struct inode *minode, struct file *mfile) {
 /**
  * timer_ioctl - ioctl event
  *
- * @minode: not used
- * @mfile:  not used
- * @cmd:    command
- * @args:   parameters delivered from user-level ioctl
+ * @inode: not used
+ * @filp:  not used
+ * @cmd:   command
+ * @arg:   parameters delivered from user-level ioctl
  */
-int timer_ioctl(struct inode *minode, struct file *mfile, unsigned int cmd, unsigned long args) {
-  // TODO
+int timer_ioctl(struct inode *inode, struct file *filp, unsigned int cmd, unsigned long arg) {
+  // initialize or run devices
+  switch (cmd) {
+    default:
+      break;
+  }
 
   return 0;
 }
 
 // register file operations
-static struct file_operations timer_fops = {
+static struct file_operations timer_fops =
+{
   .open    = timer_open,
   .release = timer_release,
   .ioctl   = timer_ioctl,
