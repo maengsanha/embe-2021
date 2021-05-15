@@ -7,6 +7,7 @@
 #include <asm/uaccess.h>
 #include <linux/fs.h>
 #include <linux/init.h>
+#include <linux/string.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/ioport.h>
@@ -42,6 +43,16 @@ static inline unsigned int get_init_val(struct args *param) {
   return init;
 }
 
+///////////////////////////////////////////////////////// LED Device /////////////////////////////////////////////////////////
+
+/**
+ * led_write - writes @data to @led_addr
+ *
+ * @led_addr: the address of LED device
+ * @data:     the data to write to @led_addr
+ */
+static inline void led_write(unsigned char *led_addr, unsigned short data) { outw(data, (unsigned int)led_addr); }
+
 /**
  * led_init - initializes @led_addr to @init of @param
  *
@@ -51,28 +62,28 @@ static inline unsigned int get_init_val(struct args *param) {
 static inline void led_init(unsigned char *led_addr, struct args *param) {
   switch (get_init_val(param)) {
     case 1:
-      outw((unsigned short)0x80, (unsigned int)led_addr);
+      led_write((unsigned short)0x80, led_addr);
       break;
     case 2:
-      outw((unsigned short)0x40, (unsigned int)led_addr);
+      led_write((unsigned short)0x40, led_addr);
       break;
     case 3:
-      outw((unsigned short)0x20, (unsigned int)led_addr);
+      led_write((unsigned short)0x20, led_addr);
       break;
     case 4:
-      outw((unsigned short)0x10, (unsigned int)led_addr);
+      led_write((unsigned short)0x10, led_addr);
       break;
     case 5:
-      outw((unsigned short)0x08, (unsigned int)led_addr);
+      led_write((unsigned short)0x08, led_addr);
       break;
     case 6:
-      outw((unsigned short)0x04, (unsigned int)led_addr);
+      led_write((unsigned short)0x04, led_addr);
       break;
     case 7:
-      outw((unsigned short)0x02, (unsigned int)led_addr);
+      led_write((unsigned short)0x02, led_addr);
       break;
     case 8:
-      outw((unsigned short)0x01, (unsigned int)led_addr);
+      led_write((unsigned short)0x01, led_addr);
       break;
     default:
       // no such case
@@ -85,7 +96,23 @@ static inline void led_init(unsigned char *led_addr, struct args *param) {
  *
  * @led_addr: the address of LED device
  */
-static inline void led_exit(unsigned char *led_addr) { outw((unsigned short)0x00, (unsigned int)led_addr); }
+static inline void led_exit(unsigned char *led_addr) { led_write((unsigned short)0x00, led_addr); }
+
+///////////////////////////////////////////////////////// FND Device /////////////////////////////////////////////////////////
+
+/**
+ * fnd_write - writes @data to @fnd_addr
+ *
+ * @fnd_addr: the address of FND device
+ * @data:     the data to write to @fnd_addr
+ */
+static inline void fnd_write(unsigned char *fnd_addr, const char *data) {
+  unsigned char  value[4];
+  unsigned short s_value;
+  strcpy(&value, data, 4);
+  s_value = (value[0] << 12) | (value[1] << 8) | (value[2] << 4) | value[3];
+  outw(s_value, (unsigned int)fnd_addr);
+}
 
 /**
  * fnd_init - initializes @fnd_addr to @init of @param
@@ -95,16 +122,15 @@ static inline void led_exit(unsigned char *led_addr) { outw((unsigned short)0x00
  */
 static inline void fnd_init(unsigned char *fnd_addr, struct args *param) {
   unsigned char value[4];
-  unsigned int val           = param->init;
-  value[0]                   = val/1000;
-  val                        %= 1000;
-  value[1]                   = val/100;
-  val                        %= 100;
-  value[2]                   = val/10;
-  val                        %= 10;
-  value[3]                   = val;
-  unsigned short value_short = value[0] << 12 | value[1] << 8 | value[2] << 4 | value[3];
-  outw(value_short, (unsigned int)fnd_addr);
+  unsigned int val = param->init;
+  value[0]         = val/1000;
+  val              %= 1000;
+  value[1]         = val/100;
+  val              %= 100;
+  value[2]         = val/10;
+  val              %= 10;
+  value[3]         = val;
+  fnd_write(fnd_addr, &value);
 }
 
 /**
@@ -112,28 +138,40 @@ static inline void fnd_init(unsigned char *fnd_addr, struct args *param) {
  *
  * @fnd_addr: the address of FND device
  */
-static inline void fnd_exit(unsigned char *fnd_addr) { outw((unsigned short)0x00, (unsigned int)fnd_addr); }
+static inline void fnd_exit(unsigned char *fnd_addr) {
+  unsigned char value[4] = {0x00, 0x00, 0x00, 0x00};
+  fnd_write(fnd_addr, &value);
+}
+
+///////////////////////////////////////////////////////// Text LCD Device /////////////////////////////////////////////////////////
+
+/**
+ * text_lcd_write - writes @high and @low to @text_lcd_addr
+ *
+ * @text_lcd_addr: the address of Text LCD device
+ * @high:          the data to write to first line of @text_lcd_addr
+ * @low:           the data to write to second line of @text_lcd_addr
+ */
+static inline void text_lcd_write(unsigned char *text_lcd_addr, const char *high, const char *low) {
+  unsigned int   i;
+  unsigned short s_value;
+  unsigned char  value[33];
+  strcpy(&value, high, 16);
+  strcpy(&value[16], low, 16);
+  value[32] = 0;
+
+  for (i=0; i<32; i+=2) {
+    s_value = (value[i] & 0xFF) << 8 | (value[i+1] & 0xFF);
+    outw(s_value, (unsigned int)text_lcd_addr+i);
+  }
+}
 
 /**
  * text_lcd_init - initializes @text_lcd_addr to @STU_NO and @NAME
  *
  * @text_lcd_addr: the address of Text LCD device
  */
-static inline void text_lcd_init(unsigned char *text_lcd_addr) {
-  int i;
-  unsigned short s_value = 0;
-  unsigned char value[33];
-  for (i=0; i<16; ++i) {
-    value[i]    = STU_NO[i];
-    value[i+16] = NAME[i];
-  }
-  value[32] = 0;
-
-  for (i=0; i<32; i+=2) {
-    s_value = (value[i] & 0xFF) << 8 | value[i+1] & 0xFF;
-    outw(s_value, (unsigned int)text_lcd_addr);
-  }
-}
+static inline void text_lcd_init(unsigned char *text_lcd_addr) { text_lcd_write(text_lcd_addr, &STU_NO, &NAME); }
 
 /**
  * text_lcd_exit - initialzies @text_lcd_addr to zero value
@@ -141,9 +179,28 @@ static inline void text_lcd_init(unsigned char *text_lcd_addr) {
  * @text_lcd_addr: the address of Text LCD device
  */
 static inline void text_lcd_exit(unsigned char *text_lcd_addr) {
+  char high[16];
+  char low[16];
+  memset(high, 0x20, 16);
+  memset(low, 0x20, 16);
+  text_lcd_write(text_lcd_addr, &high, &low);
+}
+
+///////////////////////////////////////////////////////// Dot Matrix Device /////////////////////////////////////////////////////////
+
+/**
+ * dot_matrix_write - writes @data to @dot_matrix_addr
+ *
+ * @dot_matrix_addr: the address of Dot Matrix device
+ * @data:            the data to write to @dot_matrix_addr
+ */
+static inline void dot_matrix_write(unsigned char *dot_matrix_addr, const unsigned char *data) {
   int i;
-  for (i=0; i<32; i+=2)
-    outw(0x20 & 0xFF << 8 | 0x20 & 0xFF, (unsigned int)text_lcd_addr);
+  unsigned short s_value;
+  for (i=0; i<10; ++i) {
+    s_value = data[i] & 0x7F;
+    outw(s_value, (unsigned int)dot_matrix_addr+i*2);
+  }
 }
 
 /**
@@ -152,26 +209,16 @@ static inline void text_lcd_exit(unsigned char *text_lcd_addr) {
  * @dot_matrix_addr: the address of Dot Matrix device
  * @param:           command line argument from user program
  */
-static inline void dot_matrix_init(unsigned char *dot_matrix_addr, struct args *param) {
-  int i;
-  unsigned short s_value;
-  unsigned char *value = fpga_number[get_init_val(param)];
-  for (i=0; i<10; ++i) {
-    s_value = value[i] & 0x7F;
-    outw(s_value, (unsigned int)dot_matrix_addr+i*2);
-  }
-}
+static inline void dot_matrix_init(unsigned char *dot_matrix_addr, struct args *param) { dot_matrix_write(dot_matrix_addr, fpga_number[get_init_val(param)]); }
 
 /**
  * dot_matrix_exit - initializes @dot_matrix_addr to zero value
  *
  * @dot_matrix_addr: the address of Dot Matrix device
  */
-static inline void dot_matrix_exit(unsigned char *dot_matrix_addr) {
-  int i;
-  for (i=0; i<10; ++i)
-    outw((unsigned short)0x00, (unsigned int)dot_matrix_addr+i*2);
-}
+static inline void dot_matrix_exit(unsigned char *dot_matrix_addr) { dot_matrix_write(dot_matrix_addr, fpga_number[0]); }
+
+///////////////////////////////////////////////////////// Timer Device /////////////////////////////////////////////////////////
 
 /**
  * timer_open - device driver opening event
