@@ -21,12 +21,12 @@
 #define DEV_DRIVER         "/dev/dev_driver"
 #define DEV_MAJOR          242
 
-static volatile unsigned char *led_addr;
-static volatile unsigned char *fnd_addr;
-static volatile unsigned char *text_lcd_addr;
-static volatile unsigned char *dot_matrix_addr;
+static unsigned char *led_addr;
+static unsigned char *fnd_addr;
+static unsigned char *text_lcd_addr;
+static unsigned char *dot_matrix_addr;
 
-volatile struct args *param;
+struct args *param;
 
 /**
  * get_init_val - returns initial value of @param
@@ -145,8 +145,8 @@ static inline void text_lcd_exit(unsigned char *text_lcd_addr) {
  * @param:           command line argument from user program
  */
 static inline void dot_matrix_init(unsigned char *dot_matrix_addr, struct args *param) {
-  unsigned int i           = get_init_val(param);
-  unsigned char number[10] = fpga_number[i];
+  unsigned int i        = get_init_val(param);
+  unsigned char *number = fpga_number[i];
   for (i=9; 0 <= i; --i) dot_matrix_addr[i] = number[i];
 }
 
