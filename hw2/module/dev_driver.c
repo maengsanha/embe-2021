@@ -96,11 +96,10 @@ int timer_ioctl(struct inode *inode, struct file *filp, unsigned int cmd, unsign
 }
 
 // register file operations
-static struct file_operations timer_fops =
-{
-  .open    = timer_open,
-  .release = timer_release,
-  .ioctl   = timer_ioctl,
+static struct file_operations timer_fops = {
+  .open           = timer_open,
+  .release        = timer_release,
+  .unlocked_ioctl = timer_ioctl,
 };
 
 /**
