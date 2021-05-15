@@ -66,14 +66,14 @@ static inline void fnd_write(unsigned char *fnd_addr, const char *data) {
  */
 static inline void fnd_init(unsigned char *fnd_addr, struct args *param) {
   unsigned char value[4];
-  unsigned int val = param->init;
-  value[0]         = val/1000;
-  val              %= 1000;
-  value[1]         = val/100;
-  val              %= 100;
-  value[2]         = val/10;
-  val              %= 10;
-  value[3]         = val;
+  int val  = param->init;
+  value[0] = val/1000;
+  val      %= 1000;
+  value[1] = val/100;
+  val      %= 100;
+  value[2] = val/10;
+  val      %= 10;
+  value[3] = val;
   fnd_write(fnd_addr, value);
 }
 
@@ -152,16 +152,17 @@ static inline void led_exit(unsigned char *led_addr) { led_write(led_addr, (unsi
  * @low:           the data to write to second line of @text_lcd_addr
  */
 static inline void text_lcd_write(unsigned char *text_lcd_addr, const char *high, const char *low) {
-  unsigned int   i;
+  int i;
   unsigned short s_value;
   unsigned char  value[33];
   strcpy(value, high);
   strcpy(&value[16], low);
   value[32] = 0;
 
-  for (i=0; i<32; i+=2) {
-    s_value = (value[i] & 0xFF) << 8 | (value[i+1] & 0xFF);
+  for (i=0; i<32; ++i) {
+    s_value = (value[i] & 0xFF) << 8 | value[i+1] & 0xFF;
     outw(s_value, (unsigned int)text_lcd_addr+i);
+    ++i;
   }
 }
 
@@ -193,11 +194,13 @@ static inline void text_lcd_exit(unsigned char *text_lcd_addr) {
  * @dot_matrix_addr: the address of Dot Matrix device
  * @data:            the data to write to @dot_matrix_addr
  */
-static inline void dot_matrix_write(unsigned char *dot_matrix_addr, const unsigned char *data) {
+static inline void dot_matrix_write(unsigned char *dot_matrix_addr, const char *data) {
   int i;
+  unsigned char value[10];
   unsigned short s_value;
+  strcpy(value, data);
   for (i=0; i<10; ++i) {
-    s_value = data[i] & 0x7F;
+    s_value = value[i] & 0x7F;
     outw(s_value, (unsigned int)dot_matrix_addr+i*2);
   }
 }
@@ -211,7 +214,7 @@ static inline void dot_matrix_write(unsigned char *dot_matrix_addr, const unsign
 static inline void dot_matrix_init(unsigned char *dot_matrix_addr, struct args *param) { dot_matrix_write(dot_matrix_addr, fpga_number[get_init_val(param)]); }
 
 /**
- * dot_matrix_exit - initializes @dot_matrix_addr to zero value
+ * dot_matrix_exit - initializes @dot_matrix_addr to blank
  *
  * @dot_matrix_addr: the address of Dot Matrix device
  */
@@ -229,7 +232,7 @@ static int timer_open(struct inode *minode, struct file *mfile) {
   printk("%s open\n", DEV_DRIVER);
 
   // map devices to kernel space
-  // fnd_addr        = ioremap(FND_ADDRESS, 0x04);
+  fnd_addr        = ioremap(FND_ADDRESS, 0x04);
   led_addr        = ioremap(LED_ADDRESS, 0x01);
   text_lcd_addr   = ioremap(TEXT_LCD_ADDRESS, 0x32);
   dot_matrix_addr = ioremap(DOT_MATRIX_ADDRESS, 0x10);
@@ -252,7 +255,7 @@ static int timer_release(struct inode *minode, struct file *mfile) {
   // dot_matrix_exit(dot_matrix_addr);
 
   // unmap devices
-  // iounmap(fnd_addr);
+  iounmap(fnd_addr);
   iounmap(led_addr);
   iounmap(text_lcd_addr);
   iounmap(dot_matrix_addr);
@@ -273,7 +276,7 @@ static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) 
       // initialize parameters and devices using @arg
       param = (struct args *)arg;
       led_init(led_addr, param);
-      // fnd_init(fnd_addr, param);
+      fnd_init(fnd_addr, param);
       text_lcd_init(text_lcd_addr);
       dot_matrix_init(dot_matrix_addr, param);
       break;
