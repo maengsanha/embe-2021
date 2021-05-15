@@ -10,6 +10,12 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 
+#include "args.h"
+#include "fpga_led.h"
+#include "fpga_fnd.h"
+#include "fpga_text_lcd.h"
+#include "fpga_dot.h"
+
 #define LED_ADDRESS        0x08000016
 #define FND_ADDRESS        0x08000024
 #define TEXT_LCD_ADDRESS   0x08000090
@@ -22,18 +28,7 @@ static unsigned char *fnd_addr;
 static unsigned char *text_lcd_addr;
 static unsigned char *dot_matrix_addr;
 
-/**
- * struct args - same as user-level struct args
- *
- * See app/args.h
- */
-static struct args {
-  int interval;
-  int cnt;
-  int init;
-};
-
-static struct args *param;
+struct args *param;
 
 /**
  * timer_open - device driver opening event
@@ -62,6 +57,11 @@ static int timer_open(struct inode *minode, struct file *mfile) {
 static int timer_release(struct inode *minode, struct file *mfile) {
   printk("%s close\n", DEV_DRIVER);
 
+  // led_exit(led_addr);
+  // fnd_exit(fnd_addr);
+  // text_lcd_exit(text_lcd_addr);
+  // dot_matrix_exit(dot_matrix_addr);
+
   // unmap devices
   iounmap(led_addr);
   iounmap(fnd_addr);
@@ -81,9 +81,12 @@ static int timer_release(struct inode *minode, struct file *mfile) {
 static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
   switch (_IOC_NR(cmd)) {
     case 0:
-      // initialize parameters using @arg
+      // initialize parameters and devices using @arg
       param = (struct args *)arg;
-      printk("interval: %d, cnt: %d, init: %d\n", param->interval, param->cnt, param->init);
+      led_init(led_addr, param);
+      fnd_init(fnd_addr, param);
+      text_lcd_init(text_lcd_addr);
+      dot_matrix_init(dot_matrix_addr, param);
       break;
     case 1:
       // run timer application
