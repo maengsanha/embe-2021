@@ -35,12 +35,11 @@ struct args *param;
  *
  * @param: command line argument from user program
  */
-static inline unsigned int get_init_val(struct args *param) {
-  unsigned int init = param->init;
-  if (0 < init/1000) return init/1000;
-  if (0 < init/100)  return init/100;
-  if (0 < init/10)   return init/10;
-  return init;
+static inline int get_init_val(struct args *param) {
+  return 1000 < param->init ? param->init/1000
+        : 100 < param->init ? param->init/100
+         : 10 < param->init ? param->init/10
+                            : param->init;
 }
 
 ///////////////////////////////////////////////////////// FND Device /////////////////////////////////////////////////////////
@@ -230,8 +229,8 @@ static int timer_open(struct inode *minode, struct file *mfile) {
   printk("%s open\n", DEV_DRIVER);
 
   // map devices to kernel space
+  // fnd_addr        = ioremap(FND_ADDRESS, 0x04);
   led_addr        = ioremap(LED_ADDRESS, 0x01);
-  fnd_addr        = ioremap(FND_ADDRESS, 0x04);
   text_lcd_addr   = ioremap(TEXT_LCD_ADDRESS, 0x32);
   dot_matrix_addr = ioremap(DOT_MATRIX_ADDRESS, 0x10);
 
@@ -247,14 +246,14 @@ static int timer_open(struct inode *minode, struct file *mfile) {
 static int timer_release(struct inode *minode, struct file *mfile) {
   printk("%s close\n", DEV_DRIVER);
 
-  // led_exit(led_addr);
   // fnd_exit(fnd_addr);
+  // led_exit(led_addr);
   // text_lcd_exit(text_lcd_addr);
   // dot_matrix_exit(dot_matrix_addr);
 
   // unmap devices
+  // iounmap(fnd_addr);
   iounmap(led_addr);
-  iounmap(fnd_addr);
   iounmap(text_lcd_addr);
   iounmap(dot_matrix_addr);
 
@@ -274,7 +273,7 @@ static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) 
       // initialize parameters and devices using @arg
       param = (struct args *)arg;
       led_init(led_addr, param);
-      fnd_init(fnd_addr, param);
+      // fnd_init(fnd_addr, param);
       text_lcd_init(text_lcd_addr);
       dot_matrix_init(dot_matrix_addr, param);
       break;
