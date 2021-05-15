@@ -16,15 +16,15 @@
 #include "fpga_text_lcd_util.h"
 #include "fpga_dot_font.h"
 
+#define FND_ADDRESS        0x08000004
 #define LED_ADDRESS        0x08000016
-#define FND_ADDRESS        0x08000024
 #define TEXT_LCD_ADDRESS   0x08000090
 #define DOT_MATRIX_ADDRESS 0x08000210
 #define DEV_DRIVER         "/dev/dev_driver"
 #define DEV_MAJOR          242
 
-static unsigned char *led_addr;
 static unsigned char *fnd_addr;
+static unsigned char *led_addr;
 static unsigned char *text_lcd_addr;
 static unsigned char *dot_matrix_addr;
 
@@ -41,6 +41,51 @@ static inline unsigned int get_init_val(struct args *param) {
   if (0 < init/100)  return init/100;
   if (0 < init/10)   return init/10;
   return init;
+}
+
+///////////////////////////////////////////////////////// FND Device /////////////////////////////////////////////////////////
+
+/**
+ * fnd_write - writes @data to @fnd_addr
+ *
+ * @fnd_addr: the address of FND device
+ * @data:     the data to write to @fnd_addr
+ */
+static inline void fnd_write(unsigned char *fnd_addr, const char *data) {
+  unsigned char  value[4];
+  unsigned short s_value;
+  strcpy(&value, data);
+  s_value = (value[0] << 12) | (value[1] << 8) | (value[2] << 4) | value[3];
+  outw(s_value, (unsigned int)fnd_addr);
+}
+
+/**
+ * fnd_init - initializes @fnd_addr to @init of @param
+ *
+ * @fnd_addr: the address of FND device
+ * @param:    command line argument from user program
+ */
+static inline void fnd_init(unsigned char *fnd_addr, struct args *param) {
+  unsigned char value[4];
+  unsigned int val = param->init;
+  value[0]         = val/1000;
+  val              %= 1000;
+  value[1]         = val/100;
+  val              %= 100;
+  value[2]         = val/10;
+  val              %= 10;
+  value[3]         = val;
+  fnd_write(fnd_addr, &value);
+}
+
+/**
+ * fnd_exit - initializes @fnd_addr to zero value
+ *
+ * @fnd_addr: the address of FND device
+ */
+static inline void fnd_exit(unsigned char *fnd_addr) {
+  unsigned char value[4] = {0x00, 0x00, 0x00, 0x00};
+  fnd_write(fnd_addr, &value);
 }
 
 ///////////////////////////////////////////////////////// LED Device /////////////////////////////////////////////////////////
@@ -97,51 +142,6 @@ static inline void led_init(unsigned char *led_addr, struct args *param) {
  * @led_addr: the address of LED device
  */
 static inline void led_exit(unsigned char *led_addr) { led_write(led_addr, (unsigned short)0x00); }
-
-///////////////////////////////////////////////////////// FND Device /////////////////////////////////////////////////////////
-
-/**
- * fnd_write - writes @data to @fnd_addr
- *
- * @fnd_addr: the address of FND device
- * @data:     the data to write to @fnd_addr
- */
-static inline void fnd_write(unsigned char *fnd_addr, const char *data) {
-  unsigned char  value[4];
-  unsigned short s_value;
-  strcpy(&value, data);
-  s_value = (value[0] << 12) | (value[1] << 8) | (value[2] << 4) | value[3];
-  outw(s_value, (unsigned int)fnd_addr);
-}
-
-/**
- * fnd_init - initializes @fnd_addr to @init of @param
- *
- * @fnd_addr: the address of FND device
- * @param:    command line argument from user program
- */
-static inline void fnd_init(unsigned char *fnd_addr, struct args *param) {
-  unsigned char value[4];
-  unsigned int val = param->init;
-  value[0]         = val/1000;
-  val              %= 1000;
-  value[1]         = val/100;
-  val              %= 100;
-  value[2]         = val/10;
-  val              %= 10;
-  value[3]         = val;
-  fnd_write(fnd_addr, &value);
-}
-
-/**
- * fnd_exit - initializes @fnd_addr to zero value
- *
- * @fnd_addr: the address of FND device
- */
-static inline void fnd_exit(unsigned char *fnd_addr) {
-  unsigned char value[4] = {0x00, 0x00, 0x00, 0x00};
-  fnd_write(fnd_addr, &value);
-}
 
 ///////////////////////////////////////////////////////// Text LCD Device /////////////////////////////////////////////////////////
 
