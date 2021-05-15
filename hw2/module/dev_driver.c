@@ -81,13 +81,14 @@ static int timer_release(struct inode *minode, struct file *mfile) {
  * @arg:   parameters delivered from user-level ioctl
  */
 static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
+  struct args *param;
   switch (_IOC_NR(cmd)) {
     case 0:
-      // initialize devices using @arg
-      struct args *param = (struct args *)arg;
-      interval           = param->interval;
-      cnt                = param->cnt;
-      init               = param->init;
+      // initialize parameters using @arg
+      param    = (struct args *)arg;
+      interval = param->interval;
+      cnt      = param->cnt;
+      init     = param->init;
       printk("interval: %d, cnt: %d, init: %d\n", interval, cnt, init);
       break;
     case 1:
