@@ -3,14 +3,15 @@
  *
  * module/dev_driver.c - timer deivce driver
  */
+#include <linux/module.h>
 #include <linux/fs.h>
 #include <linux/init.h>
-#include <linux/ioctl.h>
-#include <linux/module.h>
-#include <linux/kernel.h>
-#include <linux/uaccess.h>
 #include <linux/platform_device.h>
-#include <asm-generic/io.h>
+#include <linux/delay.h>
+#include <asm/io.h>
+#include <asm/uaccess.h>
+#include <linux/kernel.h>
+#include <linux/version.h>
 
 #define FND_ADDRESS        0x08000024
 #define LED_ADDRESS        0x08000016
@@ -103,14 +104,12 @@ static struct file_operations timer_fops = {
 int __init timer_init() {
 	printk("%s init\n", DEV_DRIVER);
 
-  int major;
-
-  if ((major = register_chrdev(DEV_MAJOR, DEV_DRIVER, &timer_fops)) < 0) {
-		printk("error %d\n", major);
-		return major;
+  if (register_chrdev(DEV_MAJOR, DEV_DRIVER, &timer_fops) < 0) {
+		printk("error registering %s\n", DEV_DRIVER);
+		return DEV_MAJOR;
 	}
 	
-  printk("dev_file: %s, major: %d\n", DEV_DRIVER, major);
+  printk("dev_file: %s, major: %d\n", DEV_DRIVER, DEV_MAJOR);
 
   return 0;
 }
