@@ -344,21 +344,7 @@ static int timer_open(struct inode *minode, struct file *mfile) {
  */
 static int timer_release(struct inode *minode, struct file *mfile) {
   printk("%s close\n", DEV_DRIVER);
-
-  fnd_exit();
-  led_exit();
-  text_lcd_exit();
-  dot_matrix_exit();
-
-  printk("interval: %d cnt: %d init: %d\n", param.interval, param.cnt, param.init);
-
-  // unmap devices
-  iounmap(fnd_addr);
-  iounmap(led_addr);
-  iounmap(text_lcd_addr);
-  iounmap(dot_matrix_addr);
   printk("timer release success\n");
-
   return 0;
 }
 
@@ -442,7 +428,19 @@ static int __init timer_init() {
  * timer_exit - unregisters device (executed on rmmod)
  */
 static void __exit timer_exit() {
+  fnd_exit();
+  led_exit();
+  text_lcd_exit();
+  dot_matrix_exit();
+
+  printk("interval: %d cnt: %d init: %d\n", param.interval, param.cnt, param.init);
+
+  // unmap devices
   del_timer_sync(&timer);
+  iounmap(fnd_addr);
+  iounmap(led_addr);
+  iounmap(text_lcd_addr);
+  iounmap(dot_matrix_addr);
 	unregister_chrdev(DEV_MAJOR, DEV_DRIVER);
   printk("%s exit\n", DEV_DRIVER);
 }

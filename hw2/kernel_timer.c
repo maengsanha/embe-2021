@@ -41,7 +41,7 @@ int kernel_timer_open(struct inode *minode, struct file *mfile) {
 }
 
 static void kernel_timer_blink(unsigned long timeout) {
-	struct struct_mydata *p_data = (struct struct_mydata*)timeout;
+	struct struct_mydata *p_data = (struct struct_mydata *)timeout;
 
 	printk("kernel_timer_blink %d\n", p_data->count);
 
