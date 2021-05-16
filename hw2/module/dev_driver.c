@@ -217,6 +217,8 @@ static inline void dot_matrix_exit() { dot_matrix_write(fpga_number[0]); }
  * timer_blink - fetches devices every TIMER_INTERVAL/10 HZ for TIMER_CNT
  */
 static void timer_blink(unsigned long timeout) {
+  struct args *data = (struct args *)timeout;
+
   // fetch conditions
   curr_val = curr_val == 8 ? 1 : curr_val + 1;
   fnd_pos  = fnd_rot == 7 ? (fnd_pos + 3) % 4 : fnd_pos;
@@ -304,8 +306,8 @@ static void timer_blink(unsigned long timeout) {
   strncpy(&low[low_pos], NAME, 11);
   text_lcd_write(high, low);
 
-  param.cnt--;
-  if (param.cnt < 1) {
+  data->cnt--;
+  if (data->cnt < 1) {
     return;
   }
 
@@ -329,7 +331,6 @@ static int timer_open(struct inode *minode, struct file *mfile) {
   led_addr        = ioremap(LED_ADDRESS, 0x01);
   text_lcd_addr   = ioremap(TEXT_LCD_ADDRESS, 0x32);
   dot_matrix_addr = ioremap(DOT_MATRIX_ADDRESS, 0x10);
-  init_timer(&timer);
   printk("timer open success\n");
 
   return 0;
@@ -349,7 +350,6 @@ static int timer_release(struct inode *minode, struct file *mfile) {
   text_lcd_exit();
   dot_matrix_exit();
 
-  del_timer_sync(&timer);
   printk("interval: %d cnt: %d init: %d\n", param.interval, param.cnt, param.init);
 
   // unmap devices
@@ -381,7 +381,6 @@ static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) 
       param.cnt = tmp.cnt;
       param.init = tmp.init;
       printk("interval: %d cnt: %d init: %d\n", param.interval, param.cnt, param.init);
-      param.cnt--;
 
       fnd_init();
       led_init();
@@ -400,7 +399,7 @@ static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) 
       // run timer application
       printk("ioctl 1 (command)\n");
 
-      // del_timer_sync(&timer);
+      del_timer_sync(&timer);
       timer.expires  = get_jiffies_64() + (param.interval * (HZ/10));
       timer.data     = (unsigned long)&param;
       timer.function = timer_blink;
@@ -434,6 +433,8 @@ static int __init timer_init() {
 
   printk("dev_file: %s, major: %d\n", DEV_DRIVER, DEV_MAJOR);
 
+  init_timer(&timer);
+
   return 0;
 }
 
@@ -441,6 +442,7 @@ static int __init timer_init() {
  * timer_exit - unregisters device (executed on rmmod)
  */
 static void __exit timer_exit() {
+  del_timer_sync(&timer);
 	unregister_chrdev(DEV_MAJOR, DEV_DRIVER);
   printk("%s exit\n", DEV_DRIVER);
 }
