@@ -43,15 +43,16 @@ static inline int get_init_val() {
 ///////////////////////////////////////////////////////// FND Device /////////////////////////////////////////////////////////
 
 /**
- * fnd_write - writes @data to @fnd_addr
+ * fnd_write - writes @a@b@c@d to @fnd_addr
  *
- * @data: the data to write to @fnd_addr
+ * @a: the first digit to write to @fnd_addr
+ * @b: the second digit to write to @fnd_addr
+ * @c: the third digit to write to @fnd_addr
+ * @d: the fourth digit to write to @fnd_addr
  */
-static inline void fnd_write(const unsigned char *data) {
-  unsigned char  value[4];
+static inline void fnd_write(int a, int b, int c, int d) {
   unsigned short s_value;
-  strncpy(value, data, 4);
-  s_value = (value[0] << 12) | (value[1] << 8) | (value[2] << 4) | value[3];
+  s_value = (a << 12) | (b << 8) | (c << 4) | d;
   outw(s_value, (unsigned int)fnd_addr);
 }
 
@@ -59,25 +60,17 @@ static inline void fnd_write(const unsigned char *data) {
  * fnd_init - initializes @fnd_addr to @init of @param
  */
 static inline void fnd_init() {
-  outw((unsigned short)0x1010, (unsigned int)fnd_addr);
-  // unsigned char value[4];
-  // int val  = param->init;
-  // value[0] = val/1000;
-  // val      %= 1000;
-  // value[1] = val/100;
-  // val      %= 100;
-  // value[2] = val/10;
-  // val      %= 10;
-  // value[3] = val;
-  // fnd_write(value);
+  int first  = param->init/1000;
+  int second = param->init/100%10;
+  int third  = param->init/10%10;
+  int fourth = param->init%10;
+  fnd_write(first, second, third, fourth);
 }
 
 /**
  * fnd_exit - initializes @fnd_addr to zero value
  */
-static inline void fnd_exit() {
-  outw((unsigned short)0, (unsigned int)fnd_addr);
-}
+static inline void fnd_exit() { fnd_write(0, 0, 0, 0); }
 
 ///////////////////////////////////////////////////////// LED Device /////////////////////////////////////////////////////////
 
