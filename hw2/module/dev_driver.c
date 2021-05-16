@@ -375,7 +375,11 @@ static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) 
       printk("ioctl 0 (set option)\n");
 
       // initialize parameters and devices using @arg
-      copy_from_user(&param, (void __user *)arg, sizeof(struct args));
+      struct args tmp;
+      copy_from_user(&tmp, (void __user *)arg, sizeof(struct args));
+      param.interval = tmp.interval;
+      param.cnt = tmp.cnt;
+      param.init = tmp.init;
       printk("interval: %d cnt: %d init: %d\n", param.interval, param.cnt, param.init);
 
       fnd_init();
