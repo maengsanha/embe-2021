@@ -1,2 +1,0 @@
-/work/achroimx6q/fpga_driver/fpga_dip_switch/fpga_dip_switch_driver.ko
-/work/achroimx6q/fpga_driver/fpga_dip_switch/fpga_dip_switch_driver.o
