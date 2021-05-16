@@ -131,16 +131,17 @@ static inline void led_exit() { led_write((unsigned short)0x00); }
  * @low:  the data to write to second line of @text_lcd_addr
  */
 static inline void text_lcd_write(const char *high, const char *low) {
-  unsigned int i;
-  unsigned short s_value;
+  int i;
+  unsigned short int s_value = 0;
   unsigned char  value[33];
-  strcpy(value, high);
-  strcpy(&value[16], low);
+  strncpy(value, high, 16);
+  strncpy(&value[16], low, 16);
   value[32] = 0;
 
-  for (i=0; i<32; i+=2) {
+  for (i=0; i<32; i++) {
     s_value = (value[i] & 0xFF) << 8 | (value[i+1] & 0xFF);
     outw(s_value, (unsigned int)text_lcd_addr+i);
+    i++;
   }
 }
 
@@ -168,11 +169,11 @@ static inline void text_lcd_exit() {
  * @data: the data to write to @dot_matrix_addr
  */
 static inline void dot_matrix_write(const char *data) {
-  unsigned int i;
+  int i;
   unsigned char value[10];
-  unsigned short s_value;
-  strcpy(value, data);
-  for (i=0; i<10; ++i) {
+  unsigned short int s_value;
+  strncpy(value, data, 10);
+  for (i=0; i<10; i++) {
     s_value = value[i] & 0x7F;
     outw(s_value, (unsigned int)dot_matrix_addr+i*2);
   }
@@ -218,10 +219,10 @@ static int timer_open(struct inode *minode, struct file *mfile) {
 static int timer_release(struct inode *minode, struct file *mfile) {
   printk("%s close\n", DEV_DRIVER);
 
-  // fnd_exit();
-  // led_exit();
-  // text_lcd_exit();
-  // dot_matrix_exit();
+  fnd_exit();
+  led_exit();
+  text_lcd_exit();
+  dot_matrix_exit();
 
   // unmap devices
   iounmap(fnd_addr);
@@ -248,9 +249,9 @@ static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) 
       param = (struct args *)arg;
       printk("interval: %d cnt: %d init: %d\n", param->interval, param->cnt, param->init);
       fnd_init();
-      led_init();
-      text_lcd_init();
-      dot_matrix_init();
+      // led_init();
+      // text_lcd_init();
+      // dot_matrix_init();
       break;
     case 1:
       // run timer application

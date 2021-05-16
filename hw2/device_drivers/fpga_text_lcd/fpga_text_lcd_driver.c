@@ -68,7 +68,7 @@ ssize_t iom_fpga_text_lcd_write(struct file *inode, const char *gdata, size_t le
 {
 	int i;
 
-    unsigned short int _s_value = 0;
+  unsigned short int _s_value = 0;
 	unsigned char value[33];
 	const char *tmp = gdata;
 
@@ -79,11 +79,11 @@ ssize_t iom_fpga_text_lcd_write(struct file *inode, const char *gdata, size_t le
 	printk("Get Size : %d / String : %s\n",length,value);
 
 	for(i=0;i<length;i++)
-    {
-        _s_value = (value[i] & 0xFF) << 8 | value[i + 1] & 0xFF;
+  {
+		_s_value = (value[i] & 0xFF) << 8 | value[i + 1] & 0xFF;
 		outw(_s_value,(unsigned int)iom_fpga_text_lcd_addr+i);
-        i++;
-    }
+		i++;
+	}
 
 	return length;
 }
