@@ -6,10 +6,10 @@
 #include <linux/io.h>
 #include <linux/fs.h>
 #include <linux/init.h>
+#include <linux/timer.h>
 #include <linux/string.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
-#include <linux/timer.h>
 #include <linux/ioport.h>
 #include <linux/uaccess.h>
 #include <linux/platform_device.h>
@@ -309,6 +309,7 @@ static void timer_blink(unsigned long timeout) {
   }
 
   timer.expires  = get_jiffies_64() + (param->interval * (HZ/10));
+  timer.data = (unsigned long)&param;
   timer.function = timer_blink;
   add_timer(&timer);
 }
@@ -392,8 +393,9 @@ static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) 
       // run timer application
       printk("ioctl 1 (command)\n");
 
-      del_timer_sync(&timer);
+      // del_timer_sync(&timer);
       timer.expires  = get_jiffies_64() + (param->interval * (HZ/10));
+      timer.data = (unsigned long)&param;
       timer.function = timer_blink;
       add_timer(&timer);
       break;
@@ -422,7 +424,7 @@ static int __init timer_init() {
 		printk("error registering %s\n", DEV_DRIVER);
 		return DEV_MAJOR;
 	}
-	
+
   printk("dev_file: %s, major: %d\n", DEV_DRIVER, DEV_MAJOR);
 
   return 0;
