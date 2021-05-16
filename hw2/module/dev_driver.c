@@ -231,10 +231,11 @@ static int timer_open(struct inode *minode, struct file *mfile) {
   printk("%s open\n", DEV_DRIVER);
 
   // map devices to kernel space
-  // fnd_addr        = ioremap(FND_ADDRESS, 0x04);
-  // led_addr        = ioremap(LED_ADDRESS, 0x01);
-  // text_lcd_addr   = ioremap(TEXT_LCD_ADDRESS, 0x32);
-  // dot_matrix_addr = ioremap(DOT_MATRIX_ADDRESS, 0x10);
+  fnd_addr        = ioremap(FND_ADDRESS, 0x04);
+  led_addr        = ioremap(LED_ADDRESS, 0x01);
+  text_lcd_addr   = ioremap(TEXT_LCD_ADDRESS, 0x32);
+  dot_matrix_addr = ioremap(DOT_MATRIX_ADDRESS, 0x10);
+  printk("timer open success\n");
 
   return 0;
 }
@@ -254,10 +255,11 @@ static int timer_release(struct inode *minode, struct file *mfile) {
   // dot_matrix_exit(dot_matrix_addr);
 
   // unmap devices
-  // iounmap(fnd_addr);
-  // iounmap(led_addr);
-  // iounmap(text_lcd_addr);
-  // iounmap(dot_matrix_addr);
+  iounmap(fnd_addr);
+  iounmap(led_addr);
+  iounmap(text_lcd_addr);
+  iounmap(dot_matrix_addr);
+  printk("timer release success\n");
 
   return 0;
 }
@@ -272,8 +274,9 @@ static int timer_release(struct inode *minode, struct file *mfile) {
 static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
   switch (_IOC_NR(cmd)) {
     case 0:
+    printk("run ioctl 0 (set option)\n");
       // initialize parameters and devices using @arg
-      param = (struct args *)arg;
+      // param = (struct args *)arg;
       // fnd_init(fnd_addr, param);
       // led_init(led_addr, param);
       // text_lcd_init(text_lcd_addr);
@@ -281,7 +284,7 @@ static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) 
       break;
     case 1:
       // run timer application
-      printk("run app\n");
+      printk("run ioctl 1 (command)\n");
       break;
     default:
       // no such case
