@@ -394,10 +394,8 @@ static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) 
       printk("ioctl 1 (command)\n");
 
       // del_timer_sync(&timer);
-      printk("before jiffies: interval: %d cnt: %d init: %d\n", param->interval, param->cnt, param->init);
       timer.expires  = get_jiffies_64() + (param->interval * (HZ/10));
-      printk("after jiffies: interval: %d cnt: %d init: %d\n", param->interval, param->cnt, param->init);
-      timer.data = (unsigned long)&param;
+      timer.data     = (unsigned long)&param;
       timer.function = timer_blink;
       add_timer(&timer);
       break;
@@ -436,6 +434,7 @@ static int __init timer_init() {
  * timer_exit - unregisters device (executed on rmmod)
  */
 static void __exit timer_exit() {
+  printk("interval: %d cnt: %d init: %d\n", param->interval, param->cnt, param->init);
 	unregister_chrdev(DEV_MAJOR, DEV_DRIVER);
   printk("%s exit\n", DEV_DRIVER);
 }
