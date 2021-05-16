@@ -381,6 +381,7 @@ static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) 
       param.cnt = tmp.cnt;
       param.init = tmp.init;
       printk("interval: %d cnt: %d init: %d\n", param.interval, param.cnt, param.init);
+      param.cnt--;
 
       fnd_init();
       led_init();
