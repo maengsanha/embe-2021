@@ -248,9 +248,9 @@ static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) 
       param = (struct args *)arg;
       printk("interval: %d cnt: %d init: %d\n", param->interval, param->cnt, param->init);
       fnd_init();
-      // led_init();
-      // text_lcd_init();
-      // dot_matrix_init();
+      led_init();
+      text_lcd_init();
+      dot_matrix_init();
       break;
     case 1:
       // run timer application
