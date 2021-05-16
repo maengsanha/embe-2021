@@ -11,6 +11,7 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/ioport.h>
+#include <linux/timer.h>
 
 #include "args.h"
 #include "fpga_text_lcd_util.h"
@@ -28,7 +29,16 @@ static unsigned char *led_addr;
 static unsigned char *text_lcd_addr;
 static unsigned char *dot_matrix_addr;
 
-struct args *param;
+static struct args *param;
+static struct timer_list timer;
+
+static int curr_val;
+static int fnd_pos;
+static int fnd_rot;
+static int high_pos;
+static int high_up;
+static int low_pos;
+static int low_up;
 
 /**
  * get_init_val - returns initial value of @param
@@ -38,6 +48,16 @@ static inline int get_init_val() {
         : 100 < param->init ? param->init/100
          : 10 < param->init ? param->init/10
                             : param->init;
+}
+
+/**
+ * get_init_pos - returns initial position of @param
+ */
+static inline int get_init_pos() {
+  return 1000 < param->init ? 3
+        : 100 < param->init ? 2
+         : 10 < param->init ? 1
+                            : 0;
 }
 
 ///////////////////////////////////////////////////////// FND Device /////////////////////////////////////////////////////////
@@ -192,6 +212,107 @@ static inline void dot_matrix_exit() { dot_matrix_write(fpga_number[0]); }
 ///////////////////////////////////////////////////////// Timer Device /////////////////////////////////////////////////////////
 
 /**
+ * timer_blink - fetches devices every TIMER_INTERVAL/10 HZ for TIMER_CNT
+ */
+static void *timer_blink(unsigned long *timeout) {
+  // fetch conditions
+  curr_val = curr_val == 8 ? 1 : curr_val + 1;
+  fnd_pos  = fnd_rot == 7 ? (fnd_pos + 3) % 4 : fnd_pos;
+  fnd_rot  = (fnd_rot + 1) % 8;
+  if (high_up) {
+    if (high_pos == 7) {
+      high_up = 0;
+    }
+  } else {
+    if (high_pos == 0) {
+      high_up = 1;
+    }
+  }
+  if (low_up) {
+    if (low_pos == 5) {
+      low_up = 0;
+    }
+  } else {
+    if (low_pos == 0) {
+      low_up = 1;
+    }
+  }
+  high_pos = high_up ? high_pos + 1 : high_pos - 1;
+  low_pos  = low_up ? low_pos + 1 : low_pos - 1;
+
+  // fetch FND
+  switch (fnd_pos) {
+    case 3:
+      fnd_write(curr_val, 0, 0, 0);
+      break;
+    case 2:
+      fnd_write(0, curr_val, 0, 0);
+      break;
+    case 1:
+      fnd_write(0, 0, curr_val, 0);
+      break;
+    case 0:
+      fnd_write(0, 0, 0, curr_val);
+      break;
+    default:
+      // no such case
+      break;
+  }
+
+  // fetch LED
+  switch (curr_val) {
+    case 1:
+      led_write((unsigned short)0x80);
+      break;
+    case 2:
+      led_write((unsigned short)0x40);
+      break;
+    case 3:
+      led_write((unsigned short)0x20);
+      break;
+    case 4:
+      led_write((unsigned short)0x10);
+      break;
+    case 5:
+      led_write((unsigned short)0x08);
+      break;
+    case 6:
+      led_write((unsigned short)0x04);
+      break;
+    case 7:
+      led_write((unsigned short)0x02);
+      break;
+    case 8:
+      led_write((unsigned short)0x01);
+      break;
+    default:
+      // no such case
+      break;
+  }
+
+  // fetch Dot Matrix
+  dot_matrix_write(fpga_number[curr_val]);
+
+  // fetch Text LCD
+  char high[16];
+  char low[16];
+  memset(high, 0x20, 16);
+  memset(low, 0x20, 16);
+  strncpy(&high[high_pos], STU_NO, 9);
+  strncpy(&low[low_pos], NAME, 11);
+  text_lcd_write(high, low);
+
+  param->cnt--;
+  if (param->cnt < 0) {
+    return;
+  }
+
+  timer.expires  = get_jiffies_64() + (param->interval * HZ / 10);
+  timer.function = timer_blink;
+  add_timer(&timer);
+}
+
+/**
  * timer_open - device driver opening event
  *
  * @minode: not used
@@ -244,7 +365,7 @@ static int timer_release(struct inode *minode, struct file *mfile) {
 static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
   switch (_IOC_NR(cmd)) {
     case 0:
-    printk("run ioctl 0 (set option)\n");
+    printk("ioctl 0 (set option)\n");
       // initialize parameters and devices using @arg
       param = (struct args *)arg;
       printk("interval: %d cnt: %d init: %d\n", param->interval, param->cnt, param->init);
@@ -252,10 +373,20 @@ static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) 
       led_init();
       text_lcd_init();
       dot_matrix_init();
+      curr_val = get_init_val();
+      fnd_pos  = get_init_pos();
+      fnd_rot  = 0;
+      high_pos = 0;
+      high_up  = 1;
+      low_pos  = 0;
+      low_up   = 1;
       break;
     case 1:
       // run timer application
-      printk("run ioctl 1 (command)\n");
+      printk("ioctl 1 (command)\n");
+      timer.expires  = jiffies + (param->interval * HZ / 10);
+      timer.function = timer_blink;
+      add_timer(&timer);
       break;
     default:
       // no such case
