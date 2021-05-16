@@ -365,14 +365,17 @@ static int timer_release(struct inode *minode, struct file *mfile) {
 static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
   switch (_IOC_NR(cmd)) {
     case 0:
-    printk("ioctl 0 (set option)\n");
+      printk("ioctl 0 (set option)\n");
+
       // initialize parameters and devices using @arg
       param = (struct args *)arg;
       printk("interval: %d cnt: %d init: %d\n", param->interval, param->cnt, param->init);
+
       fnd_init();
       led_init();
       text_lcd_init();
       dot_matrix_init();
+
       curr_val = get_init_val();
       fnd_pos  = get_init_pos();
       fnd_rot  = 0;
@@ -384,6 +387,7 @@ static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) 
     case 1:
       // run timer application
       printk("ioctl 1 (command)\n");
+
       timer.expires  = jiffies + (param->interval * HZ / 10);
       timer.function = timer_blink;
       add_timer(&timer);
