@@ -219,10 +219,10 @@ static int timer_open(struct inode *minode, struct file *mfile) {
 static int timer_release(struct inode *minode, struct file *mfile) {
   printk("%s close\n", DEV_DRIVER);
 
-  // fnd_exit();
-  // led_exit();
-  // text_lcd_exit();
-  // dot_matrix_exit();
+  fnd_exit();
+  led_exit();
+  text_lcd_exit();
+  dot_matrix_exit();
 
   // unmap devices
   iounmap(fnd_addr);
