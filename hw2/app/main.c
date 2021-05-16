@@ -13,8 +13,8 @@
 
 #define DEV_DRIVER "/dev/dev_driver"
 #define MAG_NUMBER 'T'
-#define SET_OPTION _IOW(MAG_NUMBER, 0, struct args)
-#define COMMAND    _IOW(MAG_NUMBER, 1, struct args)
+#define SET_OPTION _IOW(MAG_NUMBER, 0, int)
+#define COMMAND    _IOW(MAG_NUMBER, 1, int)
 
 int main(int argc, char **argv) {
   if (argc != 4) {

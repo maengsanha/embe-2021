@@ -4,23 +4,18 @@
 #include <linux/platform_device.h>
 #include <linux/kernel.h>
 #include <linux/uaccess.h>
-#include <linux/slab.h>
 
 #define KERNEL_TIMER_NAME "kernel_timer"
 
 static int kernel_timer_usage = 0;
-static int *buff = NULL;
 
 int kernel_timer_open(struct inode *, struct file *);
 int kernel_timer_release(struct inode *, struct file *);
 ssize_t kernel_timer_write(struct file *, const char *, size_t, loff_t *);
 
 static struct file_operations kernel_timer_fops =
-{
-	.open 	 = kernel_timer_open,
-	.write 	 = kernel_timer_write,
-	.release = kernel_timer_release
-};
+{ .open = kernel_timer_open, .write = kernel_timer_write,
+	.release = kernel_timer_release };
 
 static struct struct_mydata {
 	struct timer_list timer;
@@ -46,18 +41,16 @@ int kernel_timer_open(struct inode *minode, struct file *mfile) {
 }
 
 static void kernel_timer_blink(unsigned long timeout) {
-	struct struct_mydata *p_data = (struct struct_mydata *)timeout;
+	struct struct_mydata *p_data = (struct struct_mydata*)timeout;
 
 	printk("kernel_timer_blink %d\n", p_data->count);
 
-	p_data->count--;
-	kernel_timer_usage++;
-	*buff = kernel_timer_usage;
-	if(p_data->count < 0) {
+	p_data->count++;
+	if( p_data->count > 15 ) {
 		return;
 	}
 
-	mydata.timer.expires = get_jiffies_64() + (3 * HZ);
+	mydata.timer.expires = get_jiffies_64() + (1 * HZ);
 	mydata.timer.data = (unsigned long)&mydata;
 	mydata.timer.function = kernel_timer_blink;
 
@@ -90,15 +83,15 @@ ssize_t kernel_timer_write(struct file *inode, const char *gdata, size_t length,
 
 int __init kernel_timer_init(void)
 {
+	
 	printk("kernel_timer_init\n");
 
 	major = register_chrdev(0, KERNEL_TIMER_NAME, &kernel_timer_fops);
-	if (major < 0) {
-		printk("error %d\n", major);
+	if(major <0) {
+		printk( "error %d\n",major);
 		return major;
 	}
-	printk("dev_file : /dev/%s , major : %d\n", KERNEL_TIMER_NAME, major);
-	buff = kmalloc(sizeof(int), GFP_KERNEL);
+	printk( "dev_file : /dev/%s , major : %d\n",KERNEL_TIMER_NAME,major);
 
 	init_timer(&(mydata.timer));
 
@@ -109,8 +102,6 @@ int __init kernel_timer_init(void)
 void __exit kernel_timer_exit(void)
 {
 	printk("kernel_timer_exit\n");
-	printk("%d\n", *buff);
-	kfree(buff);
 	kernel_timer_usage = 0;
 	del_timer_sync(&mydata.timer);
 
