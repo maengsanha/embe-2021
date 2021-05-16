@@ -3,12 +3,13 @@
  *
  * module/dev_driver.c - timer deivce driver
  */
-#include <asm/io.h>
+#include <linux/io.h>
 #include <linux/fs.h>
 #include <linux/init.h>
 #include <linux/string.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
+#include <linux/timer.h>
 #include <linux/ioport.h>
 #include <linux/uaccess.h>
 #include <linux/platform_device.h>
@@ -307,7 +308,7 @@ static void timer_blink(unsigned long timeout) {
     return;
   }
 
-  timer.expires  = get_jiffies_64() + (param->interval * HZ / 10);
+  timer.expires  = get_jiffies_64() + (param->interval * (HZ/10));
   timer.function = timer_blink;
   add_timer(&timer);
 }
@@ -326,6 +327,7 @@ static int timer_open(struct inode *minode, struct file *mfile) {
   led_addr        = ioremap(LED_ADDRESS, 0x01);
   text_lcd_addr   = ioremap(TEXT_LCD_ADDRESS, 0x32);
   dot_matrix_addr = ioremap(DOT_MATRIX_ADDRESS, 0x10);
+  init_timer(&timer);
   printk("timer open success\n");
 
   return 0;
@@ -344,6 +346,8 @@ static int timer_release(struct inode *minode, struct file *mfile) {
   led_exit();
   text_lcd_exit();
   dot_matrix_exit();
+
+  del_timer_sync(&timer);
 
   // unmap devices
   iounmap(fnd_addr);
@@ -389,7 +393,7 @@ static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) 
       printk("ioctl 1 (command)\n");
 
       del_timer_sync(&timer);
-      timer.expires  = jiffies + (param->interval * HZ / 10);
+      timer.expires  = get_jiffies_64() + (param->interval * (HZ/10));
       timer.function = timer_blink;
       add_timer(&timer);
       break;
@@ -421,8 +425,6 @@ static int __init timer_init() {
 	
   printk("dev_file: %s, major: %d\n", DEV_DRIVER, DEV_MAJOR);
 
-  init_timer(&timer);
-
   return 0;
 }
 
@@ -430,7 +432,6 @@ static int __init timer_init() {
  * timer_exit - unregisters device (executed on rmmod)
  */
 static void __exit timer_exit() {
-  del_timer_sync(&timer);
 	unregister_chrdev(DEV_MAJOR, DEV_DRIVER);
   printk("%s exit\n", DEV_DRIVER);
 }
