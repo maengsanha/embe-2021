@@ -86,7 +86,7 @@ static inline void led_write(unsigned short data) { outw(data, (unsigned int)led
  * led_init - initializes @led_addr to @init of @param
  */
 static inline void led_init() {
-  switch (get_init_val(param)) {
+  switch (get_init_val()) {
     case 1:
       led_write((unsigned short)0x80);
       break;
@@ -181,7 +181,7 @@ static inline void dot_matrix_write(const char *data) {
 /**
  * dot_matrix_init - initializes @dot_matrix_addr to @init of @param
  */
-static inline void dot_matrix_init() { dot_matrix_write(fpga_number[get_init_val(param)]); }
+static inline void dot_matrix_init() { dot_matrix_write(fpga_number[get_init_val()]); }
 
 /**
  * dot_matrix_exit - initializes @dot_matrix_addr to blank
