@@ -276,7 +276,8 @@ static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) 
     case 0:
     printk("run ioctl 0 (set option)\n");
       // initialize parameters and devices using @arg
-      // param = (struct args *)arg;
+      param = (struct args *)arg;
+      printk("interval: %d cnt: %d init: %d\n", param->interval, param->cnt, param->init);
       // fnd_init(fnd_addr, param);
       // led_init(led_addr, param);
       // text_lcd_init(text_lcd_addr);
