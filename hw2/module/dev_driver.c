@@ -47,10 +47,10 @@ static inline int get_init_val() {
  *
  * @data: the data to write to @fnd_addr
  */
-static inline void fnd_write(const char *data) {
+static inline void fnd_write(const unsigned char *data) {
   unsigned char  value[4];
   unsigned short s_value;
-  strcpy(value, data);
+  strncpy(value, data, 4);
   s_value = (value[0] << 12) | (value[1] << 8) | (value[2] << 4) | value[3];
   outw(s_value, (unsigned int)fnd_addr);
 }
@@ -59,7 +59,7 @@ static inline void fnd_write(const char *data) {
  * fnd_init - initializes @fnd_addr to @init of @param
  */
 static inline void fnd_init() {
-  outw((unsigned short)0, (unsigned int)fnd_addr);
+  outw((unsigned short)0x1010, (unsigned int)fnd_addr);
   // unsigned char value[4];
   // int val  = param->init;
   // value[0] = val/1000;
