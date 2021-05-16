@@ -4,14 +4,14 @@
  * module/dev_driver.c - timer deivce driver
  */
 #include <asm/io.h>
-#include <asm/uaccess.h>
 #include <linux/fs.h>
 #include <linux/init.h>
 #include <linux/string.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/ioport.h>
-#include <linux/timer.h>
+#include <linux/uaccess.h>
+#include <linux/platform_device.h>
 
 #include "args.h"
 #include "fpga_text_lcd_util.h"
@@ -214,7 +214,7 @@ static inline void dot_matrix_exit() { dot_matrix_write(fpga_number[0]); }
 /**
  * timer_blink - fetches devices every TIMER_INTERVAL/10 HZ for TIMER_CNT
  */
-static void *timer_blink(unsigned long *timeout) {
+static void timer_blink(unsigned long timeout) {
   // fetch conditions
   curr_val = curr_val == 8 ? 1 : curr_val + 1;
   fnd_pos  = fnd_rot == 7 ? (fnd_pos + 3) % 4 : fnd_pos;
