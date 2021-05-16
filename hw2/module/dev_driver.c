@@ -32,10 +32,8 @@ struct args *param;
 
 /**
  * get_init_val - returns initial value of @param
- *
- * @param: command line argument from user program
  */
-static inline int get_init_val(struct args *param) {
+static inline int get_init_val() {
   return 1000 < param->init ? param->init/1000
         : 100 < param->init ? param->init/100
          : 10 < param->init ? param->init/10
@@ -47,10 +45,9 @@ static inline int get_init_val(struct args *param) {
 /**
  * fnd_write - writes @data to @fnd_addr
  *
- * @fnd_addr: the address of FND device
- * @data:     the data to write to @fnd_addr
+ * @data: the data to write to @fnd_addr
  */
-static inline void fnd_write(unsigned char *fnd_addr, const char *data) {
+static inline void fnd_write(const char *data) {
   unsigned char  value[4];
   unsigned short s_value;
   strcpy(value, data);
@@ -60,31 +57,26 @@ static inline void fnd_write(unsigned char *fnd_addr, const char *data) {
 
 /**
  * fnd_init - initializes @fnd_addr to @init of @param
- *
- * @fnd_addr: the address of FND device
- * @param:    command line argument from user program
  */
-static inline void fnd_init(unsigned char *fnd_addr, struct args *param) {
-  unsigned char value[4];
-  int val  = param->init;
-  value[0] = val/1000;
-  val      %= 1000;
-  value[1] = val/100;
-  val      %= 100;
-  value[2] = val/10;
-  val      %= 10;
-  value[3] = val;
-  fnd_write(fnd_addr, value);
+static inline void fnd_init() {
+  outw((unsigned short)0, (unsigned int)fnd_addr);
+  // unsigned char value[4];
+  // int val  = param->init;
+  // value[0] = val/1000;
+  // val      %= 1000;
+  // value[1] = val/100;
+  // val      %= 100;
+  // value[2] = val/10;
+  // val      %= 10;
+  // value[3] = val;
+  // fnd_write(value);
 }
 
 /**
  * fnd_exit - initializes @fnd_addr to zero value
- *
- * @fnd_addr: the address of FND device
  */
-static inline void fnd_exit(unsigned char *fnd_addr) {
-  unsigned char value[4] = {0x00, 0x00, 0x00, 0x00};
-  fnd_write(fnd_addr, value);
+static inline void fnd_exit() {
+  outw((unsigned short)0, (unsigned int)fnd_addr);
 }
 
 ///////////////////////////////////////////////////////// LED Device /////////////////////////////////////////////////////////
@@ -95,39 +87,36 @@ static inline void fnd_exit(unsigned char *fnd_addr) {
  * @led_addr: the address of LED device
  * @data:     the data to write to @led_addr
  */
-static inline void led_write(unsigned char *led_addr, unsigned short data) { outw(data, (unsigned int)led_addr); }
+static inline void led_write(unsigned short data) { outw(data, (unsigned int)led_addr); }
 
 /**
  * led_init - initializes @led_addr to @init of @param
- *
- * @led_addr: the address of LED device
- * @param:    command line argument from user program
  */
-static inline void led_init(unsigned char *led_addr, struct args *param) {
+static inline void led_init() {
   switch (get_init_val(param)) {
     case 1:
-      led_write(led_addr, (unsigned short)0x80);
+      led_write((unsigned short)0x80);
       break;
     case 2:
-      led_write(led_addr, (unsigned short)0x40);
+      led_write((unsigned short)0x40);
       break;
     case 3:
-      led_write(led_addr, (unsigned short)0x20);
+      led_write((unsigned short)0x20);
       break;
     case 4:
-      led_write(led_addr, (unsigned short)0x10);
+      led_write((unsigned short)0x10);
       break;
     case 5:
-      led_write(led_addr, (unsigned short)0x08);
+      led_write((unsigned short)0x08);
       break;
     case 6:
-      led_write(led_addr, (unsigned short)0x04);
+      led_write((unsigned short)0x04);
       break;
     case 7:
-      led_write(led_addr, (unsigned short)0x02);
+      led_write((unsigned short)0x02);
       break;
     case 8:
-      led_write(led_addr, (unsigned short)0x01);
+      led_write((unsigned short)0x01);
       break;
     default:
       // no such case
@@ -137,21 +126,18 @@ static inline void led_init(unsigned char *led_addr, struct args *param) {
 
 /**
  * led_exit - initializes @led_addr to zero value
- *
- * @led_addr: the address of LED device
  */
-static inline void led_exit(unsigned char *led_addr) { led_write(led_addr, (unsigned short)0x00); }
+static inline void led_exit() { led_write((unsigned short)0x00); }
 
 ///////////////////////////////////////////////////////// Text LCD Device /////////////////////////////////////////////////////////
 
 /**
  * text_lcd_write - writes @high and @low to @text_lcd_addr
  *
- * @text_lcd_addr: the address of Text LCD device
- * @high:          the data to write to first line of @text_lcd_addr
- * @low:           the data to write to second line of @text_lcd_addr
+ * @high: the data to write to first line of @text_lcd_addr
+ * @low:  the data to write to second line of @text_lcd_addr
  */
-static inline void text_lcd_write(unsigned char *text_lcd_addr, const char *high, const char *low) {
+static inline void text_lcd_write(const char *high, const char *low) {
   unsigned int i;
   unsigned short s_value;
   unsigned char  value[33];
@@ -167,22 +153,18 @@ static inline void text_lcd_write(unsigned char *text_lcd_addr, const char *high
 
 /**
  * text_lcd_init - initializes @text_lcd_addr to @STU_NO and @NAME
- *
- * @text_lcd_addr: the address of Text LCD device
  */
-static inline void text_lcd_init(unsigned char *text_lcd_addr) { text_lcd_write(text_lcd_addr, STU_NO, NAME); }
+static inline void text_lcd_init() { text_lcd_write(STU_NO, NAME); }
 
 /**
  * text_lcd_exit - initialzies @text_lcd_addr to zero value
- *
- * @text_lcd_addr: the address of Text LCD device
  */
-static inline void text_lcd_exit(unsigned char *text_lcd_addr) {
+static inline void text_lcd_exit() {
   char high[16];
   char low[16];
   memset(high, 0x20, 16);
   memset(low, 0x20, 16);
-  text_lcd_write(text_lcd_addr, high, low);
+  text_lcd_write(high, low);
 }
 
 ///////////////////////////////////////////////////////// Dot Matrix Device /////////////////////////////////////////////////////////
@@ -190,10 +172,9 @@ static inline void text_lcd_exit(unsigned char *text_lcd_addr) {
 /**
  * dot_matrix_write - writes @data to @dot_matrix_addr
  *
- * @dot_matrix_addr: the address of Dot Matrix device
- * @data:            the data to write to @dot_matrix_addr
+ * @data: the data to write to @dot_matrix_addr
  */
-static inline void dot_matrix_write(unsigned char *dot_matrix_addr, const char *data) {
+static inline void dot_matrix_write(const char *data) {
   unsigned int i;
   unsigned char value[10];
   unsigned short s_value;
@@ -206,18 +187,13 @@ static inline void dot_matrix_write(unsigned char *dot_matrix_addr, const char *
 
 /**
  * dot_matrix_init - initializes @dot_matrix_addr to @init of @param
- *
- * @dot_matrix_addr: the address of Dot Matrix device
- * @param:           command line argument from user program
  */
-static inline void dot_matrix_init(unsigned char *dot_matrix_addr, struct args *param) { dot_matrix_write(dot_matrix_addr, fpga_number[get_init_val(param)]); }
+static inline void dot_matrix_init() { dot_matrix_write(fpga_number[get_init_val(param)]); }
 
 /**
  * dot_matrix_exit - initializes @dot_matrix_addr to blank
- *
- * @dot_matrix_addr: the address of Dot Matrix device
  */
-static inline void dot_matrix_exit(unsigned char *dot_matrix_addr) { dot_matrix_write(dot_matrix_addr, fpga_number[0]); }
+static inline void dot_matrix_exit() { dot_matrix_write(fpga_number[0]); }
 
 ///////////////////////////////////////////////////////// Timer Device /////////////////////////////////////////////////////////
 
@@ -249,10 +225,10 @@ static int timer_open(struct inode *minode, struct file *mfile) {
 static int timer_release(struct inode *minode, struct file *mfile) {
   printk("%s close\n", DEV_DRIVER);
 
-  // fnd_exit(fnd_addr);
-  // led_exit(led_addr);
-  // text_lcd_exit(text_lcd_addr);
-  // dot_matrix_exit(dot_matrix_addr);
+  // fnd_exit();
+  // led_exit();
+  // text_lcd_exit();
+  // dot_matrix_exit();
 
   // unmap devices
   iounmap(fnd_addr);
@@ -278,10 +254,10 @@ static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) 
       // initialize parameters and devices using @arg
       param = (struct args *)arg;
       printk("interval: %d cnt: %d init: %d\n", param->interval, param->cnt, param->init);
-      // fnd_init(fnd_addr, param);
-      // led_init(led_addr, param);
-      // text_lcd_init(text_lcd_addr);
-      // dot_matrix_init(dot_matrix_addr, param);
+      fnd_init();
+      // led_init();
+      // text_lcd_init();
+      // dot_matrix_init();
       break;
     case 1:
       // run timer application
