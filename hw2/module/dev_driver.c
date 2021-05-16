@@ -31,7 +31,7 @@ static unsigned char *led_addr;
 static unsigned char *text_lcd_addr;
 static unsigned char *dot_matrix_addr;
 
-static struct args *param;
+static struct args param;
 static struct timer_list timer;
 
 static int curr_val;
@@ -46,20 +46,20 @@ static int low_up;
  * get_init_val - returns initial value of @param
  */
 static inline int get_init_val() {
-  return 1000 < param->init ? param->init/1000
-        : 100 < param->init ? param->init/100
-         : 10 < param->init ? param->init/10
-                            : param->init;
+  return 1000 < param.init ? param.init/1000
+        : 100 < param.init ? param.init/100
+         : 10 < param.init ? param.init/10
+                           : param.init;
 }
 
 /**
  * get_init_pos - returns initial position of @param
  */
 static inline int get_init_pos() {
-  return 1000 < param->init ? 3
-        : 100 < param->init ? 2
-         : 10 < param->init ? 1
-                            : 0;
+  return 1000 < param.init ? 3
+        : 100 < param.init ? 2
+         : 10 < param.init ? 1
+                           : 0;
 }
 
 ///////////////////////////////////////////////////////// FND Device /////////////////////////////////////////////////////////
@@ -82,10 +82,10 @@ static inline void fnd_write(int a, int b, int c, int d) {
  * fnd_init - initializes @fnd_addr to @init of @param
  */
 static inline void fnd_init() {
-  int first  = param->init/1000;
-  int second = param->init/100%10;
-  int third  = param->init/10%10;
-  int fourth = param->init%10;
+  int first  = param.init/1000;
+  int second = param.init/100%10;
+  int third  = param.init/10%10;
+  int fourth = param.init%10;
   fnd_write(first, second, third, fourth);
 }
 
@@ -304,12 +304,12 @@ static void timer_blink(unsigned long timeout) {
   strncpy(&low[low_pos], NAME, 11);
   text_lcd_write(high, low);
 
-  param->cnt--;
-  if (param->cnt < 1) {
+  param.cnt--;
+  if (param.cnt < 1) {
     return;
   }
 
-  timer.expires  = get_jiffies_64() + (param->interval * (HZ/10));
+  timer.expires  = get_jiffies_64() + (param.interval * (HZ/10));
   timer.data = (unsigned long)&param;
   timer.function = timer_blink;
   add_timer(&timer);
@@ -350,7 +350,7 @@ static int timer_release(struct inode *minode, struct file *mfile) {
   dot_matrix_exit();
 
   del_timer_sync(&timer);
-  printk("interval: %d cnt: %d init: %d\n", param->interval, param->cnt, param->init);
+  printk("interval: %d cnt: %d init: %d\n", param.interval, param.cnt, param.init);
 
   // unmap devices
   iounmap(fnd_addr);
@@ -376,8 +376,8 @@ static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) 
 
       // initialize parameters and devices using @arg
       struct args *tmp = (struct args *)arg;
-      copy_from_user(param, tmp, sizeof(struct args));
-      printk("interval: %d cnt: %d init: %d\n", param->interval, param->cnt, param->init);
+      copy_from_user(&param, tmp, sizeof(struct args));
+      printk("interval: %d cnt: %d init: %d\n", param.interval, param.cnt, param.init);
 
       fnd_init();
       led_init();
@@ -397,7 +397,7 @@ static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) 
       printk("ioctl 1 (command)\n");
 
       // del_timer_sync(&timer);
-      timer.expires  = get_jiffies_64() + (param->interval * (HZ/10));
+      timer.expires  = get_jiffies_64() + (param.interval * (HZ/10));
       timer.data     = (unsigned long)&param;
       timer.function = timer_blink;
       add_timer(&timer);
