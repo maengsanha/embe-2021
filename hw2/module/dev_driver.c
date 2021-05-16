@@ -6,6 +6,7 @@
 #include <linux/io.h>
 #include <linux/fs.h>
 #include <linux/init.h>
+#include <linux/ioctl.h>
 #include <linux/timer.h>
 #include <linux/string.h>
 #include <linux/kernel.h>
@@ -349,6 +350,7 @@ static int timer_release(struct inode *minode, struct file *mfile) {
   dot_matrix_exit();
 
   del_timer_sync(&timer);
+  printk("interval: %d cnt: %d init: %d\n", param->interval, param->cnt, param->init);
 
   // unmap devices
   iounmap(fnd_addr);
@@ -434,7 +436,6 @@ static int __init timer_init() {
  * timer_exit - unregisters device (executed on rmmod)
  */
 static void __exit timer_exit() {
-  printk("interval: %d cnt: %d init: %d\n", param->interval, param->cnt, param->init);
 	unregister_chrdev(DEV_MAJOR, DEV_DRIVER);
   printk("%s exit\n", DEV_DRIVER);
 }
