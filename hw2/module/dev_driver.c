@@ -303,7 +303,7 @@ static void *timer_blink(unsigned long *timeout) {
   text_lcd_write(high, low);
 
   param->cnt--;
-  if (param->cnt < 0) {
+  if (param->cnt < 1) {
     return;
   }
 
@@ -388,6 +388,7 @@ static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) 
       // run timer application
       printk("ioctl 1 (command)\n");
 
+      del_timer_sync(&timer);
       timer.expires  = jiffies + (param->interval * HZ / 10);
       timer.function = timer_blink;
       add_timer(&timer);
@@ -420,6 +421,8 @@ static int __init timer_init() {
 	
   printk("dev_file: %s, major: %d\n", DEV_DRIVER, DEV_MAJOR);
 
+  init_timer(&timer);
+
   return 0;
 }
 
@@ -427,6 +430,7 @@ static int __init timer_init() {
  * timer_exit - unregisters device (executed on rmmod)
  */
 static void __exit timer_exit() {
+  del_timer_sync(&timer);
 	unregister_chrdev(DEV_MAJOR, DEV_DRIVER);
   printk("%s exit\n", DEV_DRIVER);
 }
