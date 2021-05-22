@@ -331,7 +331,6 @@ static int timer_open(struct inode *minode, struct file *mfile) {
   led_addr        = ioremap(LED_ADDRESS, 0x01);
   text_lcd_addr   = ioremap(TEXT_LCD_ADDRESS, 0x32);
   dot_matrix_addr = ioremap(DOT_MATRIX_ADDRESS, 0x10);
-  printk("timer open success\n");
 
   return 0;
 }
@@ -344,7 +343,6 @@ static int timer_open(struct inode *minode, struct file *mfile) {
  */
 static int timer_release(struct inode *minode, struct file *mfile) {
   printk("%s close\n", DEV_DRIVER);
-  printk("timer release success\n");
   return 0;
 }
 
@@ -358,15 +356,12 @@ static int timer_release(struct inode *minode, struct file *mfile) {
 static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
   switch (_IOC_NR(cmd)) {
     case 0:
-      printk("ioctl 0 (set option)\n");
-
       // initialize parameters and devices using @arg
       struct args tmp;
       copy_from_user(&tmp, (void __user *)arg, sizeof(struct args));
       param.interval = tmp.interval;
       param.cnt = tmp.cnt;
       param.init = tmp.init;
-      printk("interval: %d cnt: %d init: %d\n", param.interval, param.cnt, param.init);
 
       fnd_init();
       led_init();
@@ -383,8 +378,6 @@ static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) 
       break;
     case 1:
       // run timer application
-      printk("ioctl 1 (command)\n");
-
       del_timer_sync(&timer);
       timer.expires  = get_jiffies_64() + (param.interval * (HZ/10));
       timer.data     = (unsigned long)&param;
@@ -410,12 +403,12 @@ static struct file_operations timer_fops = {
  * timer_init - registers device (executed on insmod)
  */
 static int __init timer_init() {
-	printk("%s init\n", DEV_DRIVER);
+  printk("%s init\n", DEV_DRIVER);
 
   if (register_chrdev(DEV_MAJOR, DEV_DRIVER, &timer_fops) < 0) {
-		printk("error registering %s\n", DEV_DRIVER);
-		return DEV_MAJOR;
-	}
+    printk("error registering %s\n", DEV_DRIVER);
+    return DEV_MAJOR;
+  }
 
   printk("dev_file: %s, major: %d\n", DEV_DRIVER, DEV_MAJOR);
 
@@ -433,15 +426,13 @@ static void __exit timer_exit() {
   text_lcd_exit();
   dot_matrix_exit();
 
-  printk("interval: %d cnt: %d init: %d\n", param.interval, param.cnt, param.init);
-
   // unmap devices
   del_timer_sync(&timer);
   iounmap(fnd_addr);
   iounmap(led_addr);
   iounmap(text_lcd_addr);
   iounmap(dot_matrix_addr);
-	unregister_chrdev(DEV_MAJOR, DEV_DRIVER);
+  unregister_chrdev(DEV_MAJOR, DEV_DRIVER);
   printk("%s exit\n", DEV_DRIVER);
 }
 
@@ -449,4 +440,4 @@ module_init(timer_init);
 module_exit(timer_exit);
 
 MODULE_LICENSE("GPL");
-MODULE_AUTHOR("sanha.maeng@gmail.com");
+MODULE_AUTHOR("msh0117@sogang.ac.kr");

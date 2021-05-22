@@ -1,7 +1,7 @@
 /*
  * Embedded System Software, 2021
  *
- * args.h - user argument definition
+ * app/args.h - user argument definition
  */
 
 /**

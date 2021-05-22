@@ -1,7 +1,7 @@
 /*
  * Embedded System Software, 2021
  *
- * main.c - timer module test
+ * app/main.c - timer module test
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,7 +36,6 @@ int main(int argc, char **argv) {
   int fd;
   if ((fd = open(DEV_DRIVER, O_WRONLY)) < 0) {
     printf("open %s failed\n", DEV_DRIVER);
-    close(fd);
     return 1;
   }
 

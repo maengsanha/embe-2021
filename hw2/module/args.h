@@ -1,7 +1,7 @@
 /**
  * Embedded System Software, 2021
  *
- * args.h - user-level struct args definition
+ * module/args.h - user-level struct args definition
  */
 
 /**
