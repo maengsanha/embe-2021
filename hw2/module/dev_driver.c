@@ -219,6 +219,8 @@ static inline void dot_matrix_exit() { dot_matrix_write(fpga_number[0]); }
 static void timer_blink(unsigned long timeout) {
   struct args *data = (struct args *)timeout;
 
+  if (--data->cnt < 1) return;
+
   // fetch conditions
   curr_val = curr_val == 8 ? 1 : curr_val + 1;
   fnd_pos  = fnd_rot == 7 ? (fnd_pos + 3) % 4 : fnd_pos;
@@ -305,11 +307,6 @@ static void timer_blink(unsigned long timeout) {
   strncpy(&high[high_pos], STU_NO, 9);
   strncpy(&low[low_pos], NAME, 11);
   text_lcd_write(high, low);
-
-  data->cnt--;
-  if (data->cnt < 1) {
-    return;
-  }
 
   timer.expires  = get_jiffies_64() + (param.interval * (HZ/10));
   timer.data = (unsigned long)&param;
