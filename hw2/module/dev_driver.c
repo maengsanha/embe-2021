@@ -357,11 +357,7 @@ static long timer_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) 
   switch (_IOC_NR(cmd)) {
     case 0:
       // initialize parameters and devices using @arg
-      struct args tmp;
-      copy_from_user(&tmp, (void __user *)arg, sizeof(struct args));
-      param.interval = tmp.interval;
-      param.cnt = tmp.cnt;
-      param.init = tmp.init;
+      copy_from_user(&param, (void __user *)arg, sizeof(struct args));
 
       fnd_init();
       led_init();
