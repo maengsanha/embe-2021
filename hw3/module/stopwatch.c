@@ -31,9 +31,10 @@ static dev_t             stopwatch_dev;
 static struct cdev       stopwatch_cdev;
 static struct timer_list timer;
 
-static int done    = 0;
-static int count   = 0;
-static int fnd_val = 0;
+static int done       = 0;
+static int count      = 0;
+static int fnd_val    = 0;
+static int timer_stop = 1;
 
 wait_queue_head_t wq_head;
 DECLARE_WAIT_QUEUE_HEAD(wq_head);
@@ -55,12 +56,19 @@ static inline void fnd_write(int x) {
 }
 
 /**
- * fnd_init - initialize @fnd_addr
+ * fnd_init - initializes @fnd_addr
  */
 static inline void fnd_init() { fnd_write(0); }
 
 ///////////////////////////////////////////////////////////// Stopwatch Device /////////////////////////////////////////////////////////////
 
+/**
+ * stopwatch_handler1 - starts stopwatch
+ *
+ * @irq:    not used
+ * @dev_id: not used
+ * @reg:    not used
+ */
 irqreturn_t stopwatch_handler1(int irq, void *dev_id, struct pt_regs *reg) {
   fnd_write(++fnd_val);
   printk("HOME\n");
@@ -75,19 +83,42 @@ irqreturn_t stopwatch_handler1(int irq, void *dev_id, struct pt_regs *reg) {
   return IRQ_HANDLED;
 }
 
+/**
+ * stopwatch_handler2 - pauses stopwatch
+ *
+ * @irq:    not used
+ * @dev_id: not used
+ * @reg:    not used
+ */
 irqreturn_t stopwatch_handler2(int irq, void *dev_id, struct pt_regs *reg) {
-  fnd_val = 0;
-  fnd_init();
   printk("BACK\n");
   return IRQ_HANDLED;
 }
 
+/**
+ * stopwatch_handler3 - resets stopwatch
+ *
+ * @irq:    not used
+ * @dev_id: not used
+ * @reg:    not used
+ */
 irqreturn_t stopwatch_handler3(int irq, void *dev_id, struct pt_regs *reg) {
+  count = 0;
+  fnd_val = 0;
+  fnd_init();
   printk("VOL+\n");
   return IRQ_HANDLED;
 }
 
+/**
+ * stopwatch_handler4 - stops stopwatch
+ *
+ * @irq:    not used
+ * @dev_id: not used
+ * @reg:    not used
+ */
 irqreturn_t stopwatch_handler4(int irq, void *dev_id, struct pt_regs *reg) {
+  // __wake_up(&wq_head, 1, 1, NULL);
   printk("VOL-\n");
   return IRQ_HANDLED;
 }
