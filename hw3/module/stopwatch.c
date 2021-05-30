@@ -32,7 +32,6 @@ static unsigned char     *fnd_addr;
 static dev_t             stopwatch_dev;
 static struct cdev       stopwatch_cdev;
 static struct timer_list timer;
-static struct timer_list timer_exit;
 
 static int done = 0;
 static struct stopwatch_t watch_info = {
@@ -40,7 +39,7 @@ static struct stopwatch_t watch_info = {
   .fnd_val = 0,
   .paused  = 1,
 };
-static int exit_count = 0;
+static unsigned long exit_count;
 
 wait_queue_head_t wq_head;
 DECLARE_WAIT_QUEUE_HEAD(wq_head);
@@ -89,21 +88,6 @@ static void timer_count(unsigned long arg) {
   timer.data     = (unsigned long)&watch_info;
   timer.function = timer_count;
   add_timer(&timer);
-}
-
-static void timer_exit_count(unsigned long arg) {
-  if (300 <= ++exit_count) {
-    watch_info.paused = 1;
-    fnd_init();
-    done = 1;
-    __wake_up(&wq_head, 1, 1, NULL);
-    printk("wake up\n");
-    return;
-  }
-
-  timer_exit.expires = get_jiffies_64() + (HZ/100);
-  timer_exit.function = timer_exit_count;
-  add_timer(&timer_exit);
 }
 
 /**
@@ -161,21 +145,38 @@ irqreturn_t volup_handler(int irq, void *dev_id, struct pt_regs *reg) {
 }
 
 /**
- * voldown_handler - stops stopwatch
+ * voldown_fall_handler - stops stopwatch
  *
  * @irq:    not used
  * @dev_id: not used
  * @reg:    not used
  */
-irqreturn_t voldown_handler(int irq, void *dev_id, struct pt_regs *reg) {
-  printk("VOL-\n");
+irqreturn_t voldown_fall_handler(int irq, void *dev_id, struct pt_regs *reg) {
+  printk("VOL- pushed\n");
 
-  exit_count = 0;
+  exit_count = get_jiffies_64();
 
-  del_timer_sync(&timer_exit);
-  timer_exit.expires = get_jiffies_64() + (HZ/100);
-  timer_exit.function = timer_exit_count;
-  add_timer(&timer_exit);
+  return IRQ_HANDLED;
+}
+
+/**
+ * voldown_rise_handler - stops stopwatch
+ *
+ * @irq:    not used
+ * @dev_id: not used
+ * @reg:    not used
+ */
+irqreturn_t voldown_rise_handler(int irq, void *dev_id, struct pt_regs *reg) {
+  printk("VOL- released\n");
+
+  if (3*HZ <= get_jiffies_64() - exit_count) {
+    watch_info.paused = 1;
+    fnd_init();
+    done = 1;
+    __wake_up(&wq_head, 1, 1, NULL);
+    printk("wake up\n");
+    return IRQ_HANDLED;
+  }
 
   return IRQ_HANDLED;
 }
@@ -205,7 +206,11 @@ static int stopwatch_open(struct inode *inodp, struct file *filp) {
 
   gpio_direction_input(IMX_GPIO_NR(5, 14));
   irq = gpio_to_irq(IMX_GPIO_NR(5, 14));
-  ret = request_irq(irq, voldown_handler, IRQF_TRIGGER_FALLING, "voldown", 0);
+  ret = request_irq(irq, voldown_fall_handler, IRQF_TRIGGER_FALLING, "voldown", 0);
+
+  gpio_direction_input(IMX_GPIO_NR(5, 14));
+  irq = gpio_to_irq(IMX_GPIO_NR(5, 14));
+  ret = request_irq(irq, voldown_rise_handler, IRQF_TRIGGER_RISING, "voldown", 0);
 
   return 0;
 }
