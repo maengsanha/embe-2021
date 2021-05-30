@@ -37,7 +37,7 @@ static int done = 0;
 static struct stopwatch_t watch_info = {
   .count   = 0,
   .fnd_val = 0,
-  .paused  = 0,
+  .paused  = 1,
 };
 
 wait_queue_head_t wq_head;
@@ -271,6 +271,7 @@ static int __init stopwatch_init() {
     return result;
 
   fnd_addr = ioremap(FND_ADDRESS, 0x04);
+  init_timer(&timer);
 
   printk(KERN_ALERT "Init Module Success\n");
   printk(KERN_ALERT "Device: %s, Major Number: %d\n", DEVICE_DRIVER, stopwatch_major);
@@ -279,9 +280,10 @@ static int __init stopwatch_init() {
 }
 
 static void __exit stopwatch_exit() {
+  del_timer_sync(&timer);
+  iounmap(fnd_addr);
   cdev_del(&stopwatch_cdev);
   unregister_chrdev_region(stopwatch_dev, 1);
-  iounmap(fnd_addr);
 
   printk(KERN_ALERT "Remove Module Success\n");
 }
