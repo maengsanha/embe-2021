@@ -181,22 +181,24 @@ irqreturn_t voldown_handler(int irq, void *dev_id, struct pt_regs *reg) {
  * @filp:  not used
  */
 static int stopwatch_open(struct inode *inodp, struct file *filp) {
+  int irq;
+
   printk(KERN_ALERT "Open Module\n");
   
   gpio_direction_input(IMX_GPIO_NR(1, 11));
-  gpio_to_irq(IMX_GPIO_NR(1, 11));
+  irq = gpio_to_irq(IMX_GPIO_NR(1, 11));
   request_irq(irq, home_handler, IRQF_TRIGGER_FALLING, "home", 0);
 
   gpio_direction_input(IMX_GPIO_NR(1, 12));
-  gpio_to_irq(IMX_GPIO_NR(1, 12));
+  irq = gpio_to_irq(IMX_GPIO_NR(1, 12));
   request_irq(irq, back_handler, IRQF_TRIGGER_FALLING, "back", 0);
 
   gpio_direction_input(IMX_GPIO_NR(2, 15));
-  gpio_to_irq(IMX_GPIO_NR(2, 15));
+  irq = gpio_to_irq(IMX_GPIO_NR(2, 15));
   request_irq(irq, volup_handler, IRQF_TRIGGER_FALLING, "volup", 0);
 
   gpio_direction_input(IMX_GPIO_NR(5, 14));
-  gpio_to_irq(IMX_GPIO_NR(5, 14));
+  irq = gpio_to_irq(IMX_GPIO_NR(5, 14));
   request_irq(irq, voldown_handler, IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING, "voldown", 0);
 
   return 0;
