@@ -6,40 +6,44 @@
 #include <linux/fs.h>
 #include <linux/init.h>
 #include <linux/wait.h>
+#include <linux/cdev.h>
 #include <linux/ioctl.h>
 #include <linux/timer.h>
+#include <linux/sched.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
-#include <linux/cdev.h>
 #include <linux/ioport.h>
+#include <linux/workqueue.h>
 #include <linux/interrupt.h>
 #include <linux/platform_device.h>
+#include <asm/io.h>
 #include <asm/irq.h>
 #include <asm/gpio.h>
-#include <asm/io.h>
-#include <asm/uaccess.h>
 #include <mach/gpio.h>
+#include <asm/uaccess.h>
 
 #include "stopwatch.h"
 
 #define FND_ADDRESS   0x08000004
 #define DEVICE_DRIVER "/dev/stopwatch"
 
-static int               stopwatch_major = 242;
-static int               stopwatch_minor = 0;
-static int               result;
-static unsigned char     *fnd_addr;
-static dev_t             stopwatch_dev;
-static struct cdev       stopwatch_cdev;
-static struct timer_list timer;
+static int                     stopwatch_major = 242;
+static int                     stopwatch_minor = 0;
+static int                     result;
+static unsigned char           *fnd_addr;
+static dev_t                   stopwatch_dev;
+static struct cdev             stopwatch_cdev;
+static struct timer_list       timer;
+static struct workqueue_struct *workqueue;
 
-static int done = 0;
+static int initialized               = 0;
+static int done                      = 0;
+static unsigned long exit_count      = 0;
 static struct stopwatch_t watch_info = {
   .count   = 0,
   .fnd_val = 0,
   .paused  = 1,
 };
-static unsigned long exit_count = 0;
 
 wait_queue_head_t wq_head;
 DECLARE_WAIT_QUEUE_HEAD(wq_head);
@@ -73,6 +77,7 @@ static inline void fnd_init() { fnd_write(0); }
  * @arg: stopwatch information
  */
 static void timer_count(unsigned long arg) {
+  static struct work_struct task;
   struct stopwatch_t *info = (struct stopwatch_t *)arg;
 
   if (info->paused)
@@ -81,8 +86,15 @@ static void timer_count(unsigned long arg) {
   info->count++;
   info->fnd_val = info->count/10;
 
-  // TODO: leave fnd_write to bottom half using work queue
-  fnd_write(info->fnd_val);
+  // Bottom half
+  if (initialized == 0) {
+    INIT_WORK(&task, fnd_write, &info->fnd_val);
+    initialized = 1;
+  } else {
+    PREPARE_WORK(&task, fnd_write, &info->fnd_val);
+  }
+
+  queue_work(workqueue, &task);
 
   timer.expires  = get_jiffies_64() + (HZ/10);
   timer.data     = (unsigned long)&watch_info;
@@ -164,11 +176,11 @@ irqreturn_t voldown_handler(int irq, void *dev_id, struct pt_regs *reg) {
       fnd_init();
       done = 1;
       __wake_up(&wq_head, 1, 1, NULL);
-
       printk("wake up\n");
     } else {
       exit_count = 0;
     }
+    printk("rise: %lu\n", now);
   }
 
   return IRQ_HANDLED;
