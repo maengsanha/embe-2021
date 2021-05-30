@@ -1,7 +1,7 @@
 /*
  * Embedded System Software, 2021
  *
- * stopwatch.c - stop watch device drvier
+ * stopwatch.c - stop watch device drvier module implementation
  */
 #include <linux/fs.h>
 #include <linux/init.h>
@@ -35,6 +35,7 @@ static dev_t                   stopwatch_dev;
 static struct cdev             stopwatch_cdev;
 static struct timer_list       timer;
 static struct workqueue_struct *workqueue;
+wait_queue_head_t              wq_head;
 
 static int initialized               = 0;
 static int done                      = 0;
@@ -45,7 +46,6 @@ static struct stopwatch_t watch_info = {
   .paused  = 1,
 };
 
-wait_queue_head_t wq_head;
 DECLARE_WAIT_QUEUE_HEAD(wq_head);
 
 ///////////////////////////////////////////////////////////// FND Device /////////////////////////////////////////////////////////////
@@ -69,12 +69,15 @@ static inline void fnd_write(int x) {
  */
 static inline void fnd_init() { fnd_write(0); }
 
+/**
+ * fnd_fetch - fetches @fnd_addr
+ */
 static inline void fnd_fetch() { fnd_write(watch_info.fnd_val); }
 
 ///////////////////////////////////////////////////////////// Stopwatch Device /////////////////////////////////////////////////////////////
 
 /**
- * timer_count - counts stopwatch
+ * timer_count - counts stopwatch every 0.1 second
  *
  * @arg: stopwatch information
  */
@@ -82,10 +85,10 @@ static void timer_count(unsigned long arg) {
   static struct work_struct task;
   struct stopwatch_t *info = (struct stopwatch_t *)arg;
 
-  if (info->paused)
-    return;
+  // Top half
+  if (info->paused) return;
 
-  info->count++;
+  ++info->count;
   info->fnd_val = info->count/10;
 
   // Bottom half
@@ -105,7 +108,7 @@ static void timer_count(unsigned long arg) {
 }
 
 /**
- * home_handler - starts stopwatch
+ * home_handler - starts stopwatch (executed when HOME key pressed)
  *
  * @irq:    not used
  * @dev_id: not used
@@ -126,7 +129,7 @@ irqreturn_t home_handler(int irq, void *dev_id, struct pt_regs *reg) {
 }
 
 /**
- * back_handler - pauses stopwatch
+ * back_handler - pauses stopwatch (executed when BACK key pressed)
  *
  * @irq:    not used
  * @dev_id: not used
@@ -141,7 +144,7 @@ irqreturn_t back_handler(int irq, void *dev_id, struct pt_regs *reg) {
 }
 
 /**
- * volup_handler - resets stopwatch
+ * volup_handler - resets stopwatch (executed when VOL+ key pressed)
  *
  * @irq:    not used
  * @dev_id: not used
@@ -159,7 +162,7 @@ irqreturn_t volup_handler(int irq, void *dev_id, struct pt_regs *reg) {
 }
 
 /**
- * voldown_handler - stops stopwatch
+ * voldown_handler - stops stopwatch (executed when VOL- key pressed and released)
  *
  * @irq:    not used
  * @dev_id: not used
@@ -168,10 +171,10 @@ irqreturn_t volup_handler(int irq, void *dev_id, struct pt_regs *reg) {
 irqreturn_t voldown_handler(int irq, void *dev_id, struct pt_regs *reg) {
   printk("VOL-\n");
 
-  if (exit_count == 0) {  // case of falling
+  if (exit_count == 0) { /* case of falling */
     exit_count = get_jiffies_64();
     printk("fall: %lu\n", exit_count);
-  } else {  // case of rising
+  } else {               /* case of rising */
     unsigned long now = get_jiffies_64();
     if (3*HZ <= now - exit_count) {
       watch_info.paused = 1;
@@ -189,7 +192,7 @@ irqreturn_t voldown_handler(int irq, void *dev_id, struct pt_regs *reg) {
 }
 
 /**
- * stopwatch_open - stopwatch opening event handler
+ * stopwatch_open - stopwatch opening event handler (executed by open)
  *
  * @inodp: not used
  * @filp:  not used
@@ -219,7 +222,7 @@ static int stopwatch_open(struct inode *inodp, struct file *filp) {
 }
 
 /**
- * stopwatch_release - stopwatch closing event handler
+ * stopwatch_release - stopwatch closing event handler (executed by close)
  *
  * @inodp: not used
  * @filp:  not used
@@ -236,7 +239,7 @@ static int stopwatch_release(struct inode *inodp, struct file *filp) {
 }
 
 /**
- * stopwatch_write - stopwatch writing event handler
+ * stopwatch_write - stopwatch writing event handler (executed by write)
  *
  * @filp:  not used
  * @buf:   not used
@@ -262,10 +265,11 @@ static struct file_operations stopwatch_fops = {
 };
 
 /**
- *
+ * stopwatch_register_cdev - register character device
  */
 static int stopwatch_register_cdev() {
   int error;
+
   if (stopwatch_major) {
     stopwatch_dev = MKDEV(stopwatch_major, stopwatch_minor);
     error = register_chrdev_region(stopwatch_dev, 1, "stopwatch");
@@ -284,12 +288,14 @@ static int stopwatch_register_cdev() {
   stopwatch_cdev.owner = THIS_MODULE;
   stopwatch_cdev.ops = &stopwatch_fops;
   error = cdev_add(&stopwatch_cdev, stopwatch_dev, 1);
-  if (error)
-    printk(KERN_NOTICE "stopwatch register error %d\n", error);
+  if (error) printk(KERN_NOTICE "stopwatch register error %d\n", error);
 
   return 0;
 }
 
+/**
+ * stopwatch_init - stopwatch inserting event handler (executed by insmod)
+ */
 static int __init stopwatch_init() {
   if ((result = stopwatch_register_cdev()) < 0)
     return result;
@@ -304,6 +310,9 @@ static int __init stopwatch_init() {
   return 0;
 }
 
+/**
+ * stopwatch_exit - stopwatch exiting event handler (executed by rmmod)
+ */
 static void __exit stopwatch_exit() {
   del_timer_sync(&timer);
   iounmap(fnd_addr);
