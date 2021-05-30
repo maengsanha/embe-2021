@@ -32,6 +32,7 @@ static unsigned char     *fnd_addr;
 static dev_t             stopwatch_dev;
 static struct cdev       stopwatch_cdev;
 static struct timer_list timer;
+static struct timer_list timer_exit;
 
 static int done = 0;
 static struct stopwatch_t watch_info = {
@@ -39,6 +40,7 @@ static struct stopwatch_t watch_info = {
   .fnd_val = 0,
   .paused  = 1,
 };
+static int exit_count = 0;
 
 wait_queue_head_t wq_head;
 DECLARE_WAIT_QUEUE_HEAD(wq_head);
@@ -79,12 +81,29 @@ static void timer_count(unsigned long arg) {
 
   info->count++;
   info->fnd_val = info->count/10;
+
+  // TODO: leave fnd_write to bottom half using work queue
   fnd_write(info->fnd_val);
 
   timer.expires  = get_jiffies_64() + (HZ/10);
   timer.data     = (unsigned long)&watch_info;
   timer.function = timer_count;
   add_timer(&timer);
+}
+
+static void timer_exit_count(unsigned long arg) {
+  if (300 <= ++exit_count) {
+    watch_info.paused = 1;
+    fnd_init();
+    done = 1;
+    __wake_up(&wq_head, 1, 1, NULL);
+    printk("wake up\n");
+    return;
+  }
+
+  timer_exit.expires = get_jiffies_64() + (HZ/100);
+  timer_exit.function = timer_exit_count;
+  add_timer(&timer_exit);
 }
 
 /**
@@ -151,11 +170,12 @@ irqreturn_t volup_handler(int irq, void *dev_id, struct pt_regs *reg) {
 irqreturn_t voldown_handler(int irq, void *dev_id, struct pt_regs *reg) {
   printk("VOL-\n");
 
-  watch_info.paused = 1;
-  fnd_init();
-  done = 1;
-  __wake_up(&wq_head, 1, 1, NULL);
-  printk("wake up\n");
+  exit_count = 0;
+
+  del_timer_sync(&timer_exit);
+  timer_exit.expires = get_jiffies_64() + (HZ/100);
+  timer_exit.function = timer_exit_count;
+  add_timer(&timer_exit);
 
   return IRQ_HANDLED;
 }
@@ -268,6 +288,7 @@ static int __init stopwatch_init() {
 
   fnd_addr = ioremap(FND_ADDRESS, 0x04);
   init_timer(&timer);
+  init_timer(&timer_exit);
 
   printk(KERN_ALERT "Init Module Success\n");
   printk(KERN_ALERT "Device: %s, Major Number: %d\n", DEVICE_DRIVER, stopwatch_major);
@@ -277,6 +298,7 @@ static int __init stopwatch_init() {
 
 static void __exit stopwatch_exit() {
   del_timer_sync(&timer);
+  del_timer_sync(&timer_exit);
   iounmap(fnd_addr);
   cdev_del(&stopwatch_cdev);
   unregister_chrdev_region(stopwatch_dev, 1);
