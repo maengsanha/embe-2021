@@ -103,22 +103,15 @@ static void timer_count(unsigned long arg) {
  * @reg:    not used
  */
 irqreturn_t stopwatch_handler1(int irq, void *dev_id, struct pt_regs *reg) {
+  printk("HOME\n");
+
   watch_info.paused = 0;
+
   del_timer_sync(&timer);
   timer.expires = get_jiffies_64() + (HZ/10);
   timer.data = (unsigned long)&watch_info;
   timer.function = timer_count;
   add_timer(&timer);
-
-  // fnd_write(++fnd_val);
-  // printk("HOME\n");
-
-  // if (5 < fnd_val) {
-  //   fnd_init();
-  //   done = 1;
-  //   __wake_up(&wq_head, 1, 1, NULL);
-  //   printk("wake up\n");
-  // }
 
   return IRQ_HANDLED;
 }
@@ -131,8 +124,10 @@ irqreturn_t stopwatch_handler1(int irq, void *dev_id, struct pt_regs *reg) {
  * @reg:    not used
  */
 irqreturn_t stopwatch_handler2(int irq, void *dev_id, struct pt_regs *reg) {
-  watch_info.paused = 1;
   printk("BACK\n");
+
+  watch_info.paused = 1;
+
   return IRQ_HANDLED;
 }
 
@@ -144,11 +139,13 @@ irqreturn_t stopwatch_handler2(int irq, void *dev_id, struct pt_regs *reg) {
  * @reg:    not used
  */
 irqreturn_t stopwatch_handler3(int irq, void *dev_id, struct pt_regs *reg) {
+  printk("VOL+\n");
+
   watch_info.count = 0;
   watch_info.fnd_val = 0;
   watch_info.paused = 1;
   fnd_init();
-  printk("VOL+\n");
+
   return IRQ_HANDLED;
 }
 
@@ -160,8 +157,13 @@ irqreturn_t stopwatch_handler3(int irq, void *dev_id, struct pt_regs *reg) {
  * @reg:    not used
  */
 irqreturn_t stopwatch_handler4(int irq, void *dev_id, struct pt_regs *reg) {
-  // __wake_up(&wq_head, 1, 1, NULL);
   printk("VOL-\n");
+
+  fnd_init();
+  done = 1;
+  __wake_up(&wq_head, 1, 1, NULL);
+  printk("wake up\n");
+
   return IRQ_HANDLED;
 }
 
