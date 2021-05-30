@@ -74,42 +74,34 @@ static inline void fnd_init() { fnd_write(0); }
 static void timer_count(unsigned long arg) {
   struct stopwatch_t *info = (struct stopwatch_t *)arg;
 
-  if (info->paused) {
+  if (info->paused)
     return;
-  }
 
   info->count++;
   info->fnd_val = info->count/10;
   fnd_write(info->fnd_val);
 
-  // if (5 < info->fnd_val) {
-  //   fnd_init();
-  //   done = 1;
-  //   __wake_up(&wq_head, 1, 1, NULL);
-  //   printk("wake up\n");
-  // }
-
-  timer.expires = get_jiffies_64() + (HZ/10);
-  timer.data = (unsigned long)&watch_info;
+  timer.expires  = get_jiffies_64() + (HZ/10);
+  timer.data     = (unsigned long)&watch_info;
   timer.function = timer_count;
   add_timer(&timer);
 }
 
 /**
- * stopwatch_handler1 - starts stopwatch
+ * home_handler - starts stopwatch
  *
  * @irq:    not used
  * @dev_id: not used
  * @reg:    not used
  */
-irqreturn_t stopwatch_handler1(int irq, void *dev_id, struct pt_regs *reg) {
+irqreturn_t home_handler(int irq, void *dev_id, struct pt_regs *reg) {
   printk("HOME\n");
 
   watch_info.paused = 0;
 
   del_timer_sync(&timer);
-  timer.expires = get_jiffies_64() + (HZ/10);
-  timer.data = (unsigned long)&watch_info;
+  timer.expires  = get_jiffies_64() + (HZ/10);
+  timer.data     = (unsigned long)&watch_info;
   timer.function = timer_count;
   add_timer(&timer);
 
@@ -117,13 +109,13 @@ irqreturn_t stopwatch_handler1(int irq, void *dev_id, struct pt_regs *reg) {
 }
 
 /**
- * stopwatch_handler2 - pauses stopwatch
+ * back_handler - pauses stopwatch
  *
  * @irq:    not used
  * @dev_id: not used
  * @reg:    not used
  */
-irqreturn_t stopwatch_handler2(int irq, void *dev_id, struct pt_regs *reg) {
+irqreturn_t back_handler(int irq, void *dev_id, struct pt_regs *reg) {
   printk("BACK\n");
 
   watch_info.paused = 1;
@@ -132,31 +124,31 @@ irqreturn_t stopwatch_handler2(int irq, void *dev_id, struct pt_regs *reg) {
 }
 
 /**
- * stopwatch_handler3 - resets stopwatch
+ * volup_handler - resets stopwatch
  *
  * @irq:    not used
  * @dev_id: not used
  * @reg:    not used
  */
-irqreturn_t stopwatch_handler3(int irq, void *dev_id, struct pt_regs *reg) {
+irqreturn_t volup_handler(int irq, void *dev_id, struct pt_regs *reg) {
   printk("VOL+\n");
 
-  watch_info.count = 0;
+  watch_info.count   = 0;
   watch_info.fnd_val = 0;
-  watch_info.paused = 1;
+  watch_info.paused  = 1;
   fnd_init();
 
   return IRQ_HANDLED;
 }
 
 /**
- * stopwatch_handler4 - stops stopwatch
+ * voldown_handler - stops stopwatch
  *
  * @irq:    not used
  * @dev_id: not used
  * @reg:    not used
  */
-irqreturn_t stopwatch_handler4(int irq, void *dev_id, struct pt_regs *reg) {
+irqreturn_t voldown_handler(int irq, void *dev_id, struct pt_regs *reg) {
   printk("VOL-\n");
 
   watch_info.paused = 1;
@@ -181,19 +173,19 @@ static int stopwatch_open(struct inode *inodp, struct file *filp) {
   
   gpio_direction_input(IMX_GPIO_NR(1, 11));
   irq = gpio_to_irq(IMX_GPIO_NR(1, 11));
-  ret = request_irq(irq, stopwatch_handler1, IRQF_TRIGGER_FALLING, "home", 0);
+  ret = request_irq(irq, home_handler, IRQF_TRIGGER_FALLING, "home", 0);
 
   gpio_direction_input(IMX_GPIO_NR(1, 12));
   irq = gpio_to_irq(IMX_GPIO_NR(1, 12));
-  ret = request_irq(irq, stopwatch_handler2, IRQF_TRIGGER_FALLING, "back", 0);
+  ret = request_irq(irq, back_handler, IRQF_TRIGGER_FALLING, "back", 0);
 
   gpio_direction_input(IMX_GPIO_NR(2, 15));
   irq = gpio_to_irq(IMX_GPIO_NR(2, 15));
-  ret = request_irq(irq, stopwatch_handler3, IRQF_TRIGGER_FALLING, "volup", 0);
+  ret = request_irq(irq, volup_handler, IRQF_TRIGGER_FALLING, "volup", 0);
 
   gpio_direction_input(IMX_GPIO_NR(5, 14));
   irq = gpio_to_irq(IMX_GPIO_NR(5, 14));
-  ret = request_irq(irq, stopwatch_handler4, IRQF_TRIGGER_FALLING, "voldown", 0);
+  ret = request_irq(irq, voldown_handler, IRQF_TRIGGER_FALLING, "voldown", 0);
 
   return 0;
 }
