@@ -20,6 +20,8 @@
 #include <asm/uaccess.h>
 #include <mach/gpio.h>
 
+#include "stopwatch.h"
+
 #define FND_ADDRESS   0x08000004
 #define DEVICE_DRIVER "/dev/stopwatch"
 
@@ -31,11 +33,12 @@ static dev_t             stopwatch_dev;
 static struct cdev       stopwatch_cdev;
 static struct timer_list timer;
 
-static int done       = 0;
-static int count      = 0;
-static int fnd_val    = 0;
-static int timer_stop = 1;
-static int paused     = 0;
+static int done = 0;
+static struct stopwatch_t watch_info = {
+  .count = 0;
+  .fnd_val = 0;
+  .paused = 0;
+};
 
 wait_queue_head_t wq_head;
 DECLARE_WAIT_QUEUE_HEAD(wq_head);
@@ -66,27 +69,28 @@ static inline void fnd_init() { fnd_write(0); }
 /**
  * timer_count - counts stopwatch
  *
- * @timeout: fetches @count every 0.1 seconds
+ * @arg: stopwatch information
  */
-static void timer_count(unsigned long timeout) {
-  // int *cnt = (int *)timeout;
+static void timer_count(unsigned long arg) {
+  struct stopwatch_t info = (struct stopwatch_t *)arg;
 
-  if (paused) {
+  if (info->paused) {
     return;
   }
 
-  count++;
-  fnd_val = count/10;
-  fnd_write(fnd_val);
+  info->count++;
+  info->fnd_val = info->count/10;
+  fnd_write(info->fnd_val);
 
-  if (5 < fnd_val) {
-    fnd_init();
-    done = 1;
-    __wake_up(&wq_head, 1, 1, NULL);
-    printk("wake up\n");
-  }
+  // if (5 < info->fnd_val) {
+  //   fnd_init();
+  //   done = 1;
+  //   __wake_up(&wq_head, 1, 1, NULL);
+  //   printk("wake up\n");
+  // }
 
   timer.expires = get_jiffies_64() + (HZ/10);
+  timer.data = (unsigned long)&watch_info;
   timer.function = timer_count;
   add_timer(&timer);
 }
@@ -99,10 +103,10 @@ static void timer_count(unsigned long timeout) {
  * @reg:    not used
  */
 irqreturn_t stopwatch_handler1(int irq, void *dev_id, struct pt_regs *reg) {
-  paused = 0;
+  watch_info->paused = 0;
   del_timer_sync(&timer);
   timer.expires = get_jiffies_64() + (HZ/10);
-  // timer.data = (unsigned long)&count;
+  timer.data = (unsigned long)&watch_info;
   timer.function = timer_count;
   add_timer(&timer);
 
@@ -127,7 +131,7 @@ irqreturn_t stopwatch_handler1(int irq, void *dev_id, struct pt_regs *reg) {
  * @reg:    not used
  */
 irqreturn_t stopwatch_handler2(int irq, void *dev_id, struct pt_regs *reg) {
-  paused = 1;
+  watch_info->paused = 1;
   printk("BACK\n");
   return IRQ_HANDLED;
 }
@@ -140,8 +144,8 @@ irqreturn_t stopwatch_handler2(int irq, void *dev_id, struct pt_regs *reg) {
  * @reg:    not used
  */
 irqreturn_t stopwatch_handler3(int irq, void *dev_id, struct pt_regs *reg) {
-  count = 0;
-  fnd_val = 0;
+  watch_info->count = 0;
+  watch_info->fnd_val = 0;
   fnd_init();
   printk("VOL+\n");
   return IRQ_HANDLED;
