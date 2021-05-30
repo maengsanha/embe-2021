@@ -69,6 +69,8 @@ static inline void fnd_write(int x) {
  */
 static inline void fnd_init() { fnd_write(0); }
 
+static inline void fnd_fetch() { fnd_write(watch_info.fnd_val); }
+
 ///////////////////////////////////////////////////////////// Stopwatch Device /////////////////////////////////////////////////////////////
 
 /**
@@ -88,10 +90,10 @@ static void timer_count(unsigned long arg) {
 
   // Bottom half
   if (initialized == 0) {
-    INIT_WORK(&task, fnd_write, &info->fnd_val);
+    INIT_WORK(&task, fnd_fetch);
     initialized = 1;
   } else {
-    PREPARE_WORK(&task, fnd_write, &info->fnd_val);
+    PREPARE_WORK(&task, fnd_fetch);
   }
 
   queue_work(workqueue, &task);
@@ -294,6 +296,7 @@ static int __init stopwatch_init() {
 
   fnd_addr = ioremap(FND_ADDRESS, 0x04);
   init_timer(&timer);
+  workqueue = create_workqueue("FND IO");
 
   printk(KERN_ALERT "Init Module Success\n");
   printk(KERN_ALERT "Device: %s, Major Number: %d\n", DEVICE_DRIVER, stopwatch_major);
@@ -306,6 +309,7 @@ static void __exit stopwatch_exit() {
   iounmap(fnd_addr);
   cdev_del(&stopwatch_cdev);
   unregister_chrdev_region(stopwatch_dev, 1);
+  destroy_workqueue(workqueue);
 
   printk(KERN_ALERT "Remove Module Success\n");
 }
