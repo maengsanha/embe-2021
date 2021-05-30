@@ -35,9 +35,9 @@ static struct timer_list timer;
 
 static int done = 0;
 static struct stopwatch_t watch_info = {
-  .count = 0;
-  .fnd_val = 0;
-  .paused = 0;
+  .count   = 0,
+  .fnd_val = 0,
+  .paused  = 0,
 };
 
 wait_queue_head_t wq_head;
