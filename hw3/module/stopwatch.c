@@ -156,13 +156,16 @@ irqreturn_t voldown_handler(int irq, void *dev_id, struct pt_regs *reg) {
 
   if (exit_count == 0) {  // case of falling
     exit_count = get_jiffies_64();
-  } else if (3*HZ <= get_jiffies_64() - exit_count) { // case of rising
+    printk("fall: %lu\n", exit_count);
+  } else if ((3*HZ) <= get_jiffies_64() - exit_count) { // case of rising
     watch_info.paused = 1;
     fnd_init();
     done = 1;
     __wake_up(&wq_head, 1, 1, NULL);
+    printk("rise: %lu\n", get_jiffies_64());
     printk("wake up\n");
   } else {
+    printk("rise: %lu\n", get_jiffies_64());
     exit_count = 0;
   }
 
