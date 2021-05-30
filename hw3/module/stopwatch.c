@@ -35,6 +35,7 @@ static int done       = 0;
 static int count      = 0;
 static int fnd_val    = 0;
 static int timer_stop = 1;
+static int paused     = 0;
 
 wait_queue_head_t wq_head;
 DECLARE_WAIT_QUEUE_HEAD(wq_head);
@@ -63,15 +64,20 @@ static inline void fnd_init() { fnd_write(0); }
 ///////////////////////////////////////////////////////////// Stopwatch Device /////////////////////////////////////////////////////////////
 
 /**
- * stopwatch_handler1 - starts stopwatch
+ * timer_count - counts stopwatch
  *
- * @irq:    not used
- * @dev_id: not used
- * @reg:    not used
+ * @timeout: fetches @count every 0.1 seconds
  */
-irqreturn_t stopwatch_handler1(int irq, void *dev_id, struct pt_regs *reg) {
-  fnd_write(++fnd_val);
-  printk("HOME\n");
+static void timer_count(unsigned long timeout) {
+  // int *cnt = (int *)timeout;
+
+  if (paused) {
+    return;
+  }
+
+  count++;
+  fnd_val = count/10;
+  fnd_write(fnd_val);
 
   if (5 < fnd_val) {
     fnd_init();
@@ -79,6 +85,36 @@ irqreturn_t stopwatch_handler1(int irq, void *dev_id, struct pt_regs *reg) {
     __wake_up(&wq_head, 1, 1, NULL);
     printk("wake up\n");
   }
+
+  timer.expires = get_jiffies_64() + (HZ/10);
+  timer.function = timer_count;
+  add_timer(&timer);
+}
+
+/**
+ * stopwatch_handler1 - starts stopwatch
+ *
+ * @irq:    not used
+ * @dev_id: not used
+ * @reg:    not used
+ */
+irqreturn_t stopwatch_handler1(int irq, void *dev_id, struct pt_regs *reg) {
+  paused = 0;
+  del_timer_sync(&timer);
+  timer.expires = get_jiffies_64() + (HZ/10);
+  // timer.data = (unsigned long)&count;
+  timer.function = timer_count;
+  add_timer(&timer);
+
+  // fnd_write(++fnd_val);
+  // printk("HOME\n");
+
+  // if (5 < fnd_val) {
+  //   fnd_init();
+  //   done = 1;
+  //   __wake_up(&wq_head, 1, 1, NULL);
+  //   printk("wake up\n");
+  // }
 
   return IRQ_HANDLED;
 }
@@ -91,6 +127,7 @@ irqreturn_t stopwatch_handler1(int irq, void *dev_id, struct pt_regs *reg) {
  * @reg:    not used
  */
 irqreturn_t stopwatch_handler2(int irq, void *dev_id, struct pt_regs *reg) {
+  paused = 1;
   printk("BACK\n");
   return IRQ_HANDLED;
 }
