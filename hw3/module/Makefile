@@ -5,14 +5,6 @@ PWD     := $(shell pwd)
 default:
 	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) modules
 
-# all: setup driver
-
-# setup:
-# 	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) modules ARCH=arm
-
-# driver:
-# 	arm-none-linux-gnueabi-gcc -static -o stopwatch stopwatch.c
-
 clean:
 	@rm -rf *.ko
 	@rm -rf *.mod.*
