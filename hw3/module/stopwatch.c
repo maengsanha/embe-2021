@@ -23,7 +23,7 @@
 #define FND_ADDRESS   0x08000004
 #define DEVICE_DRIVER "/dev/stopwatch"
 
-static int               stopwatch_major = 0;
+static int               stopwatch_major = 242;
 static int               stopwatch_minor = 0;
 static int               result;
 static unsigned char     *fnd_addr;
@@ -31,6 +31,7 @@ static dev_t             stopwatch_dev;
 static struct cdev       stopwatch_cdev;
 static struct timer_list timer;
 
+static int done    = 0;
 static int count   = 0;
 static int fnd_val = 0;
 
@@ -63,6 +64,14 @@ static inline void fnd_init() { fnd_write(0); }
 irqreturn_t stopwatch_handler1(int irq, void *dev_id, struct pt_regs *reg) {
   fnd_write(++fnd_val);
   printk("HOME\n");
+
+  if (5 < fnd_val) {
+    fnd_init();
+    done = 1;
+    __wake_up(&wq_head, 1, 1, NULL);
+    printk("wake up\n");
+  }
+
   return IRQ_HANDLED;
 }
 
@@ -139,6 +148,11 @@ static int stopwatch_release(struct inode *inodp, struct file *filp) {
  * @f_pos: not used
  */
 static int stopwatch_write(struct file *filp, const char *buf, size_t count, loff_t *f_pos) {
+  if (done == 0) {
+    printk("sleep on\n");
+    interruptible_sleep_on(&wq_head);
+  }
+
   printk("Module Write\n");
   
   return 0;
