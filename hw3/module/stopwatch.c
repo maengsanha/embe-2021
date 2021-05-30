@@ -293,7 +293,6 @@ static int __init stopwatch_init() {
 
   fnd_addr = ioremap(FND_ADDRESS, 0x04);
   init_timer(&timer);
-  init_timer(&timer_exit);
 
   printk(KERN_ALERT "Init Module Success\n");
   printk(KERN_ALERT "Device: %s, Major Number: %d\n", DEVICE_DRIVER, stopwatch_major);
@@ -303,7 +302,6 @@ static int __init stopwatch_init() {
 
 static void __exit stopwatch_exit() {
   del_timer_sync(&timer);
-  del_timer_sync(&timer_exit);
   iounmap(fnd_addr);
   cdev_del(&stopwatch_cdev);
   unregister_chrdev_region(stopwatch_dev, 1);
