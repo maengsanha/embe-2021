@@ -72,7 +72,7 @@ static inline void fnd_init() { fnd_write(0); }
  * @arg: stopwatch information
  */
 static void timer_count(unsigned long arg) {
-  struct stopwatch_t info = (struct stopwatch_t *)arg;
+  struct stopwatch_t *info = (struct stopwatch_t *)arg;
 
   if (info->paused) {
     return;
@@ -103,7 +103,7 @@ static void timer_count(unsigned long arg) {
  * @reg:    not used
  */
 irqreturn_t stopwatch_handler1(int irq, void *dev_id, struct pt_regs *reg) {
-  watch_info->paused = 0;
+  watch_info.paused = 0;
   del_timer_sync(&timer);
   timer.expires = get_jiffies_64() + (HZ/10);
   timer.data = (unsigned long)&watch_info;
@@ -131,7 +131,7 @@ irqreturn_t stopwatch_handler1(int irq, void *dev_id, struct pt_regs *reg) {
  * @reg:    not used
  */
 irqreturn_t stopwatch_handler2(int irq, void *dev_id, struct pt_regs *reg) {
-  watch_info->paused = 1;
+  watch_info.paused = 1;
   printk("BACK\n");
   return IRQ_HANDLED;
 }
@@ -144,8 +144,8 @@ irqreturn_t stopwatch_handler2(int irq, void *dev_id, struct pt_regs *reg) {
  * @reg:    not used
  */
 irqreturn_t stopwatch_handler3(int irq, void *dev_id, struct pt_regs *reg) {
-  watch_info->count = 0;
-  watch_info->fnd_val = 0;
+  watch_info.count = 0;
+  watch_info.fnd_val = 0;
   fnd_init();
   printk("VOL+\n");
   return IRQ_HANDLED;
