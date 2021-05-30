@@ -39,7 +39,7 @@ static struct stopwatch_t watch_info = {
   .fnd_val = 0,
   .paused  = 1,
 };
-static unsigned long exit_count;
+static unsigned long exit_count = 0;
 
 wait_queue_head_t wq_head;
 DECLARE_WAIT_QUEUE_HEAD(wq_head);
@@ -145,37 +145,25 @@ irqreturn_t volup_handler(int irq, void *dev_id, struct pt_regs *reg) {
 }
 
 /**
- * voldown_fall_handler - stops stopwatch
+ * voldown_handler - stops stopwatch
  *
  * @irq:    not used
  * @dev_id: not used
  * @reg:    not used
  */
-irqreturn_t voldown_fall_handler(int irq, void *dev_id, struct pt_regs *reg) {
-  printk("VOL- pushed\n");
+irqreturn_t voldown_handler(int irq, void *dev_id, struct pt_regs *reg) {
+  printk("VOL-\n");
 
-  exit_count = get_jiffies_64();
-
-  return IRQ_HANDLED;
-}
-
-/**
- * voldown_rise_handler - stops stopwatch
- *
- * @irq:    not used
- * @dev_id: not used
- * @reg:    not used
- */
-irqreturn_t voldown_rise_handler(int irq, void *dev_id, struct pt_regs *reg) {
-  printk("VOL- released\n");
-
-  if (3*HZ <= get_jiffies_64() - exit_count) {
+  if (exit_count == 0) {  // case of falling
+    exit_count = get_jiffies_64();
+  } else if (3*HZ <= get_jiffies_64() - exit_count) { // case of rising
     watch_info.paused = 1;
     fnd_init();
     done = 1;
     __wake_up(&wq_head, 1, 1, NULL);
     printk("wake up\n");
-    return IRQ_HANDLED;
+  } else {
+    exit_count = 0;
   }
 
   return IRQ_HANDLED;
@@ -206,11 +194,7 @@ static int stopwatch_open(struct inode *inodp, struct file *filp) {
 
   gpio_direction_input(IMX_GPIO_NR(5, 14));
   irq = gpio_to_irq(IMX_GPIO_NR(5, 14));
-  ret = request_irq(irq, voldown_fall_handler, IRQF_TRIGGER_FALLING, "voldown", 0);
-
-  gpio_direction_input(IMX_GPIO_NR(5, 14));
-  irq = gpio_to_irq(IMX_GPIO_NR(5, 14));
-  ret = request_irq(irq, voldown_rise_handler, IRQF_TRIGGER_RISING, "voldown", 0);
+  ret = request_irq(irq, voldown_handler, IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING, "voldown", 0);
 
   return 0;
 }
