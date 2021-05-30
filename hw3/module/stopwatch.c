@@ -146,6 +146,7 @@ irqreturn_t stopwatch_handler2(int irq, void *dev_id, struct pt_regs *reg) {
 irqreturn_t stopwatch_handler3(int irq, void *dev_id, struct pt_regs *reg) {
   watch_info.count = 0;
   watch_info.fnd_val = 0;
+  watch_info.paused = 1;
   fnd_init();
   printk("VOL+\n");
   return IRQ_HANDLED;
