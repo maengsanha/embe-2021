@@ -187,7 +187,7 @@ static int __init stopwatch_init() {
   fnd_addr = ioremap(FND_ADDRESS, 0x04);
 
   printk(KERN_ALERT "Init Module Success\n");
-  printk(KERN_ALERT "Device: %s, Major Number: %d\n", DEVICE_DRIVER, DEV_MAJOR);
+  printk(KERN_ALERT "Device: %s, Major Number: %d\n", DEVICE_DRIVER, stopwatch_major);
 
   return 0;
 }
