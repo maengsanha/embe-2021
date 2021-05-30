@@ -10,4 +10,4 @@ main.o: main.c
 	$(CC) $(CFLAGS) -c -o main.o main.c -lrt
 
 clean:
-	rm -f $(OBJS) $(TARGET)
+	@rm -f $(OBJS) $(TARGET)
