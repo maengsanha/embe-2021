@@ -3,10 +3,10 @@
  *
  * topinfo.c - new system call to parse system information (top)
  */
+#include <linux/slab.h>
 #include <linux/string.h>
 #include <linux/kernel.h>
 #include <linux/uaccess.h>
-#include <linux/slab.h>
 
 /**
  * parse_info - parse @res and save user usage to @user_usage, system usage to @sys_usage
@@ -15,7 +15,7 @@
  * @user_usage: variable to store user usage
  * @sys_usage:  variable to store system usage
  */
-void parse_info(char *buf, int *user_usage, int *sys_usage) {
+void parse_info(struct sys_info_t *info, char *buf) {
   char *token = strsep(&buf, "%%");
   char ustr[strlen(token)];
   strcpy(ustr, token);
@@ -27,13 +27,13 @@ void parse_info(char *buf, int *user_usage, int *sys_usage) {
   char *_ustr = ustr;
   char *_token = strsep(&_ustr, " ");
   _token = strsep(&_ustr, " ");
-  *user_usage = (int)simple_strtol(_token, NULL, 10);
+  info->user_usage = (int)simple_strtol(_token, NULL, 10);
 
   char *_sstr = sstr;
   char *__token = strsep(&_sstr, " ");
   __token = strsep(&_sstr, " ");
   __token = strsep(&_sstr, " ");
-  *sys_usage = (int)simple_strtol(__token, NULL, 10);
+  info->sys_usage = (int)simple_strtol(__token, NULL, 10);
 }
 
 asmlinkage int sys_topinfo(struct sys_info_t *si, char *str) {
@@ -41,23 +41,15 @@ asmlinkage int sys_topinfo(struct sys_info_t *si, char *str) {
   char *buf = kmalloc(1 << 10, GFP_KERNEL);
   int err;
 
-  if ((err = copy_from_user(&info, si, sizeof(struct sys_info_t))) > 0) {
-    printk(KERN_ALERT "failed copy_from_user: %d\n", err);
-    return err;
-  }
   if ((err = copy_from_user(buf, str, sizeof(buf))) > 0) {
     printk(KERN_ALERT "failed copy_from_user: %d\n", err);
     return err;
   }
 
-  parse_info(buf, &user_usage, &sys_usage);
+  parse_info(&info, buf);
   kfree(buf);
 
-  if ((err = copy_to_user(uusage, &user_usage, sizeof(int))) > 0) {
-    printk(KERN_ALERT "failed copy_to_user: %d\n", err);
-    return err;
-  }
-  if ((err = copy_to_user(susage, &sys_usage, sizeof(int))) > 0) {
+  if ((err = copy_to_user(si, &info, sizeof(int))) > 0) {
     printk(KERN_ALERT "failed copy_to_user: %d\n", err);
     return err;
   }
