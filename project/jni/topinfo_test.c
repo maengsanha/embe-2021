@@ -9,11 +9,16 @@
 #include "sysinfo.h"
 
 #define FILENAME  "/data/local/tmp/output.txt"
-#define BUFSIZE   16384
+#define BUFSIZE   32768
 
 char *get_process_info() {
-  if (fork() == 0) {
-    execlp("sh", "sh", "-c", "top -n 1 > /data/local/tmp/output.txt");
+  pid_t pid;
+
+  if ((pid = fork()) == -1) {
+    printf("fork failed\n");
+    exit(1);
+  } else if (pid == 0) {
+    execlp("sh", "sh", "-c", "top -n 1 > /data/local/tmp/output.txt", NULL);
   } else {
     wait(NULL);
 
@@ -28,11 +33,6 @@ char *get_process_info() {
 
     read(fd, buf, BUFSIZE);
     close(fd);
-
-    struct sys_info_t info = {
-      .user_usage = -1,
-      .sys_usage = -1,
-    };
 
     char *token = strtok(buf, "%%");
     char ustr[strlen(token)];
@@ -51,6 +51,11 @@ char *get_process_info() {
     __token = strtok(sstr, " ");
     int sys_usage = atoi(__token);
 
+    struct sys_info_t info = {
+      .user_usage = -1,
+      .sys_usage = -1,
+    };
+
     syscall(376, &info, &user_usage, &sys_usage);
 
     // write to device driver
@@ -59,9 +64,12 @@ char *get_process_info() {
 
     return buf;
   }
+
+  return NULL;
 }
 
 int main() {
   char *buf = get_process_info();
+  printf(buf);
   free(buf);
 }
