@@ -12,25 +12,23 @@
 #define BUFSIZE   16384
 
 char *get_process_info() {
-  switch (fork()) {
-    case -1:
-      printf("fork failed\n");
+  pid_t pid;
+  if ((pid = fork()) == -1) {
+    printf("fork failed\n");
+    exit(1);
+  } else if (pid == 0) {
+    execlp("/system/bin/sh", "/system/bin/sh", "-c", "top -n 1 > /data/local/tmp/output.txt");
+  } else {
+    char *buf = malloc(sizeof(char)*BUFSIZE);
+    int fd;
+    if ((fd = open(FILENAME, O_RDONLY)) < 0) {
+      printf("open failed: %d\n", fd);
+      free(buf);
       exit(1);
-      break;
-    case 0:
-      execlp("/system/bin/sh", "/system/bin/sh", "-c", "top -n 1 > /data/local/tmp/output.txt");
-      break;
-    default:
-      char *buf = malloc(sizeof(char)*BUFSIZE);
-      int fd;
-      if ((fd = open(FILENAME, O_RDONLY)) < 0) {
-        printf("open failed: %d\n", fd);
-        free(buf);
-        exit(1);
-      }
-      read(fd, buf, BUFSIZE);
-      close(fd);
-      return buf;
+    }
+    read(fd, buf, BUFSIZE);
+    close(fd);
+    return buf;
   }
 }
 
