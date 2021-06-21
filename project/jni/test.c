@@ -12,7 +12,12 @@
 #define BUFSIZE   32768
 
 char *get_process_info() {
-  if (fork() == 0) {
+  pid_t pid;
+
+  if ((pid = fork()) == -1) {
+    printf("fork failed\n");
+    exit(1);
+  } else if (pid == 0) {
     execlp("sh", "sh", "-c", "top -n 1 > /data/local/tmp/output.txt");
   } else {
     wait(NULL);
