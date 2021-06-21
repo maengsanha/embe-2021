@@ -32,8 +32,42 @@ char *get_process_info() {
   }
 }
 
-int main() {
+char *parse_process_info() {
   char *buf = get_process_info();
+  
+  struct sys_info_t info = {
+    .user_usage = -1,
+    .sys_usage = -1,
+  };
+
+  char *token = strtok(buf, "%%");
+  char ustr[strlen(token)];
+  strcpy(ustr, token);
+
+  token = strtok(NULL, "%%");
+  char sstr[strlen(token)];
+  strcpy(sstr, token);
+
+  char *_token = strtok(ustr, " ");
+  _token = strtok(NULL, " ");
+  int user_usage = atoi(_token);
+
+  char *__token = strtok(sstr, " ");
+  __token = strtok(sstr, " ");
+  __token = strtok(sstr, " ");
+  int sys_usage = atoi(__token);
+
+  syscall(376, &info, &user_usage, &sys_usage);
+
+  // write to device driver
+  printf("User: %d\n", info.user_usage);
+  printf("System: %d\n", info.sys_usage);
+
+  return buf;
+}
+
+int main() {
+  char *buf = parse_process_info();
   printf(buf);
   free(buf);
 }
