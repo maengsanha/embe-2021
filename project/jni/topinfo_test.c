@@ -28,7 +28,6 @@ char *get_process_info() {
 
 int main() {
   char *info = get_process_info();
-  printf("%s\n", info);
   int uusage = -1;
   int susage = -1;
   syscall(376, info, &uusage, &susage);

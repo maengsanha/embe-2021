@@ -36,12 +36,17 @@ void parse_info(char *buf, int *user_usage, int *sys_usage) {
   *sys_usage = (int)simple_strtol(__token, NULL, 10);
 }
 
-asmlinkage int sys_topinfo(char *info, int *uusage, int *susage) {
+asmlinkage int sys_topinfo(struct sys_info_t *si, char *str) {
+  struct sys_info_t info;
   char *buf = kmalloc(1 << 10, GFP_KERNEL);
-  int user_usage = 0;
-  int sys_usage = 0;
   int err;
-  if ((err = copy_from_user(buf, info, sizeof(buf))) > 0) {
+
+  if ((err = copy_from_user(&info, si, sizeof(struct sys_info_t))) > 0) {
+    printk(KERN_ALERT "failed copy_from_user: %d\n", err);
+    return err;
+  }
+  if ((err = copy_from_user(buf, str, sizeof(buf))) > 0) {
+    printk(KERN_ALERT "failed copy_from_user: %d\n", err);
     return err;
   }
 
@@ -49,9 +54,11 @@ asmlinkage int sys_topinfo(char *info, int *uusage, int *susage) {
   kfree(buf);
 
   if ((err = copy_to_user(uusage, &user_usage, sizeof(int))) > 0) {
+    printk(KERN_ALERT "failed copy_to_user: %d\n", err);
     return err;
   }
   if ((err = copy_to_user(susage, &sys_usage, sizeof(int))) > 0) {
+    printk(KERN_ALERT "failed copy_to_user: %d\n", err);
     return err;
   }
 
