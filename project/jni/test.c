@@ -69,5 +69,7 @@ static inline void parse_process_info() {
 }
 
 int main() {
-  parse_process_info();
+  char *buf = get_process_info();
+  printf(buf);
+  free(buf);
 }
