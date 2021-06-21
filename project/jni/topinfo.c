@@ -6,6 +6,7 @@
 #include <linux/string.h>
 #include <linux/kernel.h>
 #include <linux/uaccess.h>
+#include <linux/slab.h>
 
 /**
  * parse_info - parse @res and save user usage to @user_usage, system usage to @sys_usage
@@ -14,38 +15,45 @@
  * @user_usage: variable to store user usage
  * @sys_usage:  variable to store system usage
  */
-void parse_info(char res[], int *user_usage, int *sys_usage) {
-  char *cur = res;
-  char *token = strsep(&cur, "%%");
+void parse_info(char *buf, int *user_usage, int *sys_usage) {
+  char *token = strsep(&buf, "%%");
   char ustr[strlen(token)];
   strcpy(ustr, token);
 
-  token = strsep(&cur, "%%");
+  token = strsep(&buf, "%%");
   char sstr[strlen(token)];
   strcpy(sstr, token);
 
-  char *cur2 = ustr;
-  char *_token = strsep(&cur2, " ");
-  _token = strsep(&cur2, " ");
+  char *_ustr = ustr;
+  char *_token = strsep(&_ustr, " ");
+  _token = strsep(&_ustr, " ");
   *user_usage = (int)simple_strtol(_token, NULL, 10);
 
-  char *cur3 = sstr;
-  char *__token = strsep(&cur3, " ");
-  __token = strsep(&cur3, " ");
-  __token = strsep(&cur3, " ");
+  char *_sstr = sstr;
+  char *__token = strsep(&_sstr, " ");
+  __token = strsep(&_sstr, " ");
+  __token = strsep(&_sstr, " ");
   *sys_usage = (int)simple_strtol(__token, NULL, 10);
 }
 
 asmlinkage int sys_topinfo(char *info, int *uusage, int *susage) {
+  char *buf = kmalloc(1 << 10, GFP_KERNEL);
   int user_usage = 0;
   int sys_usage = 0;
-  char res[1 << 15];
-  copy_from_user(res, info, sizeof(res));
+  int err;
+  if ((err = copy_from_user(buf, info, sizeof(buf))) > 0) {
+    return err;
+  }
 
-  parse_info(res, &user_usage, &sys_usage);
+  parse_info(buf, &user_usage, &sys_usage);
+  kfree(buf);
 
-  copy_to_user(uusage, &user_usage, sizeof(int));
-  copy_to_user(susage, &sys_usage, sizeof(int));
+  if ((err = copy_to_user(uusage, &user_usage, sizeof(int))) > 0) {
+    return err;
+  }
+  if ((err = copy_to_user(susage, &sys_usage, sizeof(int))) > 0) {
+    return err;
+  }
 
   return 0;
 }
