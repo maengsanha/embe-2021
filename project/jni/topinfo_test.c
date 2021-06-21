@@ -12,26 +12,26 @@
 #define BUFSIZE   32768
 
 char *get_process_info() {
-  switch (fork()) {
-    case 0:
-      execlp("/system/bin/sh", "/system/bin/sh", "-c", "top -n 1 > /data/local/tmp/output.txt");
-      break;
-    default:
-      wait(NULL);
-      char *buf = malloc(sizeof(char)*BUFSIZE);
-      int fd;
-      if ((fd = open(FILENAME, O_RDONLY)) < 0) {
-        printf("open failed :%d\n", fd);
-        exit(1);
-      }
-      read(fd, buf, BUFSIZE);
-      close(fd);
-      return buf;
+  if (fork() == 0) {
+    execlp("/system/bin/sh", "/system/bin/sh", "-c", "top -n 1 > /data/local/tmp/output.txt");
+  } else {
+    wait(NULL);
+
+    char *buf = malloc(sizeof(char)*BUFSIZE);
+    int fd;
+    if ((fd = open(FILENAME, O_RDONLY)) < 0) {
+      printf("open failed :%d\n", fd);
+      exit(1);
+    }
+    read(fd, buf, BUFSIZE);
+    close(fd);
+    return buf;
   }
 }
 
 int main() {
   char *buf = get_process_info();
+
   struct sys_info_t info = {
     .user_usage = -1,
     .sys_usage = -1,
