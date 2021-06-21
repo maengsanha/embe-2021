@@ -8,8 +8,9 @@
 
 #include "sysinfo.h"
 
-#define FILENAME  "/data/local/tmp/output.txt"
-#define BUFSIZE   32768
+#define FILENAME      "/data/local/tmp/output.txt"
+#define DEVICE_DRIVER "/dev/monitor"
+#define BUFSIZE       32768
 
 char *get_process_info() {
   pid_t pid;
@@ -58,9 +59,17 @@ char *get_process_info() {
 
     syscall(376, &info, &user_usage, &sys_usage);
 
-    // write to device driver
     printf("User: %d\n", info.user_usage);
     printf("System: %d\n", info.sys_usage);
+
+    // write to device driver
+    if ((fd = open(DEVICE_DRIVER, O_WRONLY)) < 0) {
+      printf("device open failed: %d\n", fd);
+      free(buf);
+      exit(1);
+    }
+    write(fd, &info, sizeof(struct sys_info_t));
+    close(fd);
 
     return buf;
   }
