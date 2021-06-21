@@ -4,14 +4,14 @@
 #include <string.h>
 #include <fcntl.h>
 #include <syscall.h>
-#include <wait.h>
+#include <sys/wait.h>
 
 #include "sysinfo.h"
 
 #define FILENAME  "/data/local/tmp/output.txt"
 #define BUFSIZE   16384
 
-int main() {
+char *get_process_info() {
   if (fork() == 0) {
     execlp("sh", "sh", "-c", "top -n 1 > /data/local/tmp/output.txt");
   } else {
@@ -28,7 +28,12 @@ int main() {
     read(fd, buf, BUFSIZE);
     close(fd);
 
-    printf(buf);
-    free(buf);
+    return buf;
   }
+}
+
+int main() {
+  char *buf = get_process_info();
+  printf(buf);
+  free(buf);
 }
