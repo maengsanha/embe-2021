@@ -24,6 +24,7 @@ char *get_process_info() {
         exit(1);
       }
       read(fd, buf, BUFSIZE);
+      close(fd);
       return buf;
   }
 }
