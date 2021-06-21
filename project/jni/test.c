@@ -13,6 +13,7 @@
 
 int main() {
   execlp("sh", "sh", "-c", "top -n 1 > /data/local/tmp/output.txt");
+  sleep(5);
   
   char *buf = malloc(sizeof(char)*BUFSIZE);
 
