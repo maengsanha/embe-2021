@@ -12,12 +12,18 @@
 #define BUFSIZE   32768
 
 char *get_process_info() {
+  char *buf;
+  struct sys_info_t info = {
+    .user_usage = -1,
+    .sys_usage = -1,
+  };
+  
   if (fork() == 0) {
     execlp("sh", "sh", "-c", "top -n 1 > /data/local/tmp/output.txt");
   } else {
     wait(NULL);
 
-    char *buf = malloc(BUFSIZE);
+    buf = malloc(BUFSIZE);
 
     int fd;
     if ((fd = open(FILENAME, O_RDONLY)) < 0) {
@@ -29,43 +35,31 @@ char *get_process_info() {
     read(fd, buf, BUFSIZE);
     close(fd);
 
-    return buf;
+    char *token = strtok(buf, "%%");
+    char ustr[strlen(token)];
+    strcpy(ustr, token);
+
+    token = strtok(NULL, "%%");
+    char sstr[strlen(token)];
+    strcpy(sstr, token);
+
+    char *_token = strtok(ustr, " ");
+    _token = strtok(NULL, " ");
+    int user_usage = atoi(_token);
+
+    char *__token = strtok(sstr, " ");
+    __token = strtok(sstr, " ");
+    __token = strtok(sstr, " ");
+    int sys_usage = atoi(__token);
+
+    syscall(376, &info, &user_usage, &sys_usage);
+
+    // write to device driver
+    printf("User: %d\n", info.user_usage);
+    printf("System: %d\n", info.sys_usage);
   }
-}
 
-static inline void parse_process_info() {
-  char *buf = get_process_info();
-  printf(buf);
-
-  struct sys_info_t info = {
-    .user_usage = -1,
-    .sys_usage = -1,
-  };
-
-  char *token = strtok(buf, "%%");
-  char ustr[strlen(token)];
-  strcpy(ustr, token);
-
-  token = strtok(NULL, "%%");
-  char sstr[strlen(token)];
-  strcpy(sstr, token);
-
-  char *_token = strtok(ustr, " ");
-  _token = strtok(NULL, " ");
-  int user_usage = atoi(_token);
-
-  char *__token = strtok(sstr, " ");
-  __token = strtok(sstr, " ");
-  __token = strtok(sstr, " ");
-  int sys_usage = atoi(__token);
-
-  syscall(376, &info, &user_usage, &sys_usage);
-
-  // write to device driver
-  printf("User: %d\n", info.user_usage);
-  printf("System: %d\n", info.sys_usage);
-
-  free(buf);
+  return buf;
 }
 
 int main() {
