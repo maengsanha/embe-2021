@@ -4,7 +4,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <syscall.h>
-#include <sys/wait.h>
+#include <wait.h>
 
 #include "sysinfo.h"
 
@@ -20,13 +20,16 @@ char *get_process_info() {
     execlp("/system/bin/sh", "/system/bin/sh", "-c", "top -n 1 > /data/local/tmp/output.txt");
   } else {
     wait(NULL);
+
     char *buf = malloc(sizeof(char)*BUFSIZE);
+
     int fd;
     if ((fd = open(FILENAME, O_RDONLY)) < 0) {
       printf("open failed: %d\n", fd);
       free(buf);
       exit(1);
     }
+
     read(fd, buf, BUFSIZE);
     close(fd);
     return buf;
@@ -58,9 +61,7 @@ int main() {
   __token = strtok(sstr, " ");
   int sys_usage = atoi(__token);
 
-  // syscall(376, &info, &user_usage, &sys_usage);
-  info.user_usage = user_usage;
-  info.sys_usage = sys_usage;
+  syscall(376, &info, &user_usage, &sys_usage);
   free(buf);
 
   printf("User: %d\n", info.user_usage);
