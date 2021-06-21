@@ -19,6 +19,7 @@ char *get_process_info() {
   } else if (pid == 0) {
     execlp("/system/bin/sh", "/system/bin/sh", "-c", "top -n 1 > /data/local/tmp/output.txt");
   } else {
+    wait(NULL);
     char *buf = malloc(sizeof(char)*BUFSIZE);
     int fd;
     if ((fd = open(FILENAME, O_RDONLY)) < 0) {
