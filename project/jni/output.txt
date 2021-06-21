@@ -1,8 +1,0 @@
-
-
-
-User 32%, System 64%, IOW 0%, IRQ 0%
-User 2 + Nice 0 + Sys 4 + Idle 1215 + IOW 0 + IRQ 0 + SIRQ 0 = 1221
-
-  PID PR CPU% S #THR VSS RSS PCY UD Name
- 5185  2   0% R    1 1280K

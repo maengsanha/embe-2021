@@ -1,7 +1,11 @@
+/**
+ * Embedded System Software, 2021
+ *
+ * topinfo.c - new system call to parse system information (top)
+ */
 #include <linux/string.h>
 #include <linux/kernel.h>
 #include <linux/uaccess.h>
-#include <include/linux/kernel.h>
 
 /**
  * parse_info - parse @res and save user usage to @user_usage, system usage to @sys_usage
@@ -11,21 +15,25 @@
  * @sys_usage:  variable to store system usage
  */
 void parse_info(char res[], int *user_usage, int *sys_usage) {
-  char *tokenizer = strtok(info, "%%");
-  char ustr[strlen(tokenizer)];
-  strcpy(ustr, tokenizer);
-  tokenizer = strtok(NULL, "%%");
-  char sstr[strlen(tokenizer)];
-  strcpy(sstr, tokenizer);
+  char *cur = res;
+  char *token = strsep(&cur, "%%");
+  char ustr[strlen(token)];
+  strcpy(ustr, token);
 
-  char *_tokenizer = strtok(ustr, " ");
-  _tokenizer = strtok(NULL, " ");
-  *user_usage = (int)simple_strtol(_tokenizer, NULL, 10);
+  token = strsep(&cur, "%%");
+  char sstr[strlen(token)];
+  strcpy(sstr, token);
 
-  char *__tokenizer = strtok(sstr, " ");
-  __tokenizer = strtok(NULL, " ");
-  __tokenizer = strtok(NULL, " ");
-  *sys_usage = (int)simple_strtol(__tokenizer, NULL, 10);
+  char *cur2 = ustr;
+  char *_token = strsep(&cur2, " ");
+  _token = strsep(&cur2, " ");
+  *user_usage = (int)simple_strtol(_token, NULL, 10);
+
+  char *cur3 = sstr;
+  char *__token = strsep(&cur3, " ");
+  __token = strsep(&cur3, " ");
+  __token = strsep(&cur3, " ");
+  *sys_usage = (int)simple_strtol(__token, NULL, 10);
 }
 
 asmlinkage int sys_topinfo(char *info, int *uusage, int *susage) {
