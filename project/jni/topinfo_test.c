@@ -14,9 +14,9 @@
 char *get_process_info() {
   if (fork() == 0) {
     execlp("sh", "sh", "-c", "top -n 1 > /data/local/tmp/output.txt");
-    exit(0);
   } else {
     wait(NULL);
+    sleep(5);
 
     char *buf = malloc(BUFSIZE);
 
