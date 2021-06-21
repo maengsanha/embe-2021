@@ -13,10 +13,6 @@
 
 char *get_process_info() {
   char *buf;
-  struct sys_info_t info = {
-    .user_usage = -1,
-    .sys_usage = -1,
-  };
   
   if (fork() == 0) {
     execlp("sh", "sh", "-c", "top -n 1 > /data/local/tmp/output.txt");
@@ -51,6 +47,11 @@ char *get_process_info() {
     __token = strtok(sstr, " ");
     __token = strtok(sstr, " ");
     int sys_usage = atoi(__token);
+
+    struct sys_info_t info = {
+      .user_usage = -1,
+      .sys_usage = -1,
+    };
 
     syscall(376, &info, &user_usage, &sys_usage);
 
