@@ -34,9 +34,10 @@ int main() {
     .user_usage = -1,
     .sys_usage = -1,
   };
+
   syscall(376, &info, buf);
+  free(buf);
 
   printf("User: %d\n", info.user_usage);
   printf("System: %d\n", info.sys_usage);
-  free(buf);
 }

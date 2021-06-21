@@ -8,6 +8,8 @@
 #include <linux/kernel.h>
 #include <linux/uaccess.h>
 
+#include "sysinfo.h"
+
 /**
  * parse_info - parse @res and save user usage to @user_usage, system usage to @sys_usage
  *
@@ -46,7 +48,8 @@ asmlinkage int sys_topinfo(struct sys_info_t *si, char *str) {
     return err;
   }
 
-  parse_info(&info, buf);
+  // parse_info(&info, buf);
+  printk(buf);
   kfree(buf);
 
   if ((err = copy_to_user(si, &info, sizeof(int))) > 0) {
