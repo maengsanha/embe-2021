@@ -17,7 +17,7 @@ char *get_process_info() {
     printf("fork failed\n");
     exit(1);
   } else if (pid == 0) {
-    execlp("/system/bin/sh", "/system/bin/sh", "-c", "top -n 1 > /data/local/tmp/output.txt");
+    execlp("/system/bin/sh", "/system/bin/sh", "-c", "/system/bin/top -n 1 > /data/local/tmp/output.txt");
   } else {
     wait(NULL);
 
