@@ -9,7 +9,7 @@
 #include "sysinfo.h"
 
 #define FILENAME  "/data/local/tmp/output.txt"
-#define BUFSIZE   16384
+#define BUFSIZE   32768
 
 char *get_process_info() {
   if (fork() == 0) {
@@ -33,12 +33,10 @@ char *get_process_info() {
   }
 }
 
-char *parse_process_info() {
-  char *tmp = get_process_info();
-  char *buf = malloc(BUFSIZE);
-  strcpy(buf, tmp);
-  free(tmp);
-  
+static inline void parse_process_info() {
+  char *buf = get_process_info();
+  printf(buf);
+
   struct sys_info_t info = {
     .user_usage = -1,
     .sys_usage = -1,
@@ -67,11 +65,9 @@ char *parse_process_info() {
   printf("User: %d\n", info.user_usage);
   printf("System: %d\n", info.sys_usage);
 
-  return buf;
+  free(buf);
 }
 
 int main() {
-  char *buf = parse_process_info();
-  printf(buf);
-  free(buf);
+  parse_process_info();
 }
