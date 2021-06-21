@@ -16,6 +16,7 @@ char *get_process_info() {
     execlp("sh", "sh", "-c", "top -n 1 > /data/local/tmp/output.txt");
   } else {
     wait(NULL);
+
     char *buf = malloc(BUFSIZE);
 
     int fd;
@@ -67,7 +68,7 @@ char *parse_process_info() {
 }
 
 int main() {
-  char *buf = parse_process_info();
+  char *buf = get_process_info();
   printf(buf);
   free(buf);
 }
