@@ -12,14 +12,12 @@
 #define BUFSIZE   32768
 
 char *get_process_info() {
-  char *buf;
-  
   if (fork() == 0) {
     execlp("sh", "sh", "-c", "top -n 1 > /data/local/tmp/output.txt");
   } else {
     wait(NULL);
 
-    buf = malloc(BUFSIZE);
+    char *buf = malloc(BUFSIZE);
 
     int fd;
     if ((fd = open(FILENAME, O_RDONLY)) < 0) {
@@ -58,9 +56,11 @@ char *get_process_info() {
     // write to device driver
     printf("User: %d\n", info.user_usage);
     printf("System: %d\n", info.sys_usage);
+
+    return buf;
   }
 
-  return buf;
+  return NULL;
 }
 
 int main() {
