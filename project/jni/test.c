@@ -12,21 +12,23 @@
 #define BUFSIZE   16384
 
 int main() {
-  execlp("sh", "sh", "-c", "top -n 1 > /data/local/tmp/output.txt");
-  sleep(5);
-  
-  char *buf = malloc(sizeof(char)*BUFSIZE);
+  if (fork() == 0) {
+    execlp("sh", "sh", "-c", "top -n 1 > /data/local/tmp/output.txt");
+  } else {
+    wait(NULL);
+    char *buf = malloc(BUFSIZE);
 
-  int fd;
-  if ((fd = open(FILENAME, O_RDONLY)) < 0) {
-    printf("open failed: %d\n", fd);
+    int fd;
+    if ((fd = open(FILENAME, O_RDONLY)) < 0) {
+      printf("open failed: %d\n", fd);
+      free(buf);
+      exit(1);
+    }
+
+    read(fd, buf, BUFSIZE);
+    close(fd);
+
+    printf(buf);
     free(buf);
-    exit(1);
   }
-
-  read(fd, buf, BUFSIZE);
-  close(fd);
-
-  printf(buf);
-  free(buf);
 }
