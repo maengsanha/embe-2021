@@ -19,12 +19,12 @@ char *get_process_info() {
 
     char *buf = malloc(BUFSIZE);
 
-    int fd;
-    if ((fd = open(FILENAME, O_RDONLY)) < 0) {
-      printf("open failed: %d\n", fd);
-      free(buf);
-      exit(1);
-    }
+    int fd = open(FILENAME, O_RDONLY);
+    // if ((fd = open(FILENAME, O_RDONLY)) < 0) {
+    //   printf("open failed: %d\n", fd);
+    //   free(buf);
+    //   exit(1);
+    // }
 
     read(fd, buf, BUFSIZE);
     close(fd);
