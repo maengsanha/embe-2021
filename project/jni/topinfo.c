@@ -49,10 +49,11 @@ asmlinkage int sys_topinfo(struct sys_info_t *si, char *str) {
   }
 
   // parse_info(&info, buf);
-  printk(buf);
+  info.user_usage = 32;
+  info.sys_usage = 64;
   kfree(buf);
 
-  if ((err = copy_to_user(si, &info, sizeof(int))) > 0) {
+  if ((err = copy_to_user(si, &info, sizeof(struct sys_info_t))) > 0) {
     printk(KERN_ALERT "failed copy_to_user: %d\n", err);
     return err;
   }
