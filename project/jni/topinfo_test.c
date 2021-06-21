@@ -9,7 +9,7 @@
 #include "sysinfo.h"
 
 #define FILENAME  "/data/local/tmp/output.txt"
-#define BUFSIZE   32768
+#define BUFSIZE   16384
 
 char *get_process_info() {
   if (fork() == 0) {
@@ -21,6 +21,7 @@ char *get_process_info() {
     int fd;
     if ((fd = open(FILENAME, O_RDONLY)) < 0) {
       printf("open failed :%d\n", fd);
+      free(buf);
       exit(1);
     }
     read(fd, buf, BUFSIZE);
@@ -54,7 +55,9 @@ int main() {
   __token = strtok(sstr, " ");
   int sys_usage = atoi(__token);
 
-  syscall(376, &info, &user_usage, &sys_usage);
+  // syscall(376, &info, &user_usage, &sys_usage);
+  info.user_usage = user_usage;
+  info.sys_usage = sys_usage;
   free(buf);
 
   printf("User: %d\n", info.user_usage);
