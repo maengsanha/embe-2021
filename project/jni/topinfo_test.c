@@ -5,6 +5,8 @@
 #include <syscall.h>
 #include <sys/wait.h>
 
+#include "sysinfo.h"
+
 #define FILENAME  "/data/local/tmp/output.txt"
 #define BUFSIZE   32768
 
@@ -27,12 +29,14 @@ char *get_process_info() {
 }
 
 int main() {
-  char *info = get_process_info();
-  int uusage = -1;
-  int susage = -1;
-  syscall(376, info, &uusage, &susage);
+  char *buf = get_process_info();
+  struct sys_info_t info = {
+    .user_usage = -1,
+    .sys_usage = -1,
+  };
+  syscall(376, &info, buf);
 
-  printf("User: %d\n", uusage);
-  printf("System: %d\n", susage);
-  free(info);
+  printf("User: %d\n", info.user_usage);
+  printf("System: %d\n", info.sys_usage);
+  free(buf);
 }
