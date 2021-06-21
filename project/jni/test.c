@@ -34,7 +34,10 @@ char *get_process_info() {
 }
 
 char *parse_process_info() {
-  char *buf = get_process_info();
+  char *tmp = get_process_info();
+  char *buf = malloc(BUFSIZE);
+  strcpy(buf, tmp);
+  free(tmp);
   
   struct sys_info_t info = {
     .user_usage = -1,
@@ -68,7 +71,7 @@ char *parse_process_info() {
 }
 
 int main() {
-  char *buf = get_process_info();
+  char *buf = parse_process_info();
   printf(buf);
   free(buf);
 }
