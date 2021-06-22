@@ -1,3 +1,8 @@
+/*
+ * Embedded System Software, 2021
+ *
+ * procinfo.c - system information JNI function
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -6,11 +11,13 @@
 #include <syscall.h>
 #include <sys/wait.h>
 
-#include "sysinfo.h"
+#include "procinfo.h"
 
 #define FILENAME      "/data/local/tmp/output.txt"
 #define DEVICE_DRIVER "/dev/monitor"
 #define BUFSIZE       32768
+
+extern char *get_process_info();
 
 char *get_process_info() {
   pid_t pid;
@@ -75,10 +82,4 @@ char *get_process_info() {
   }
 
   return NULL;
-}
-
-int main() {
-  char *buf = get_process_info();
-  printf(buf);
-  free(buf);
 }

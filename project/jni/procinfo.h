@@ -1,7 +1,7 @@
 /*
  * Embedded System Software, 2021
  *
- * sysinfo.c - system information definition
+ * procinfo.c - system information definition
  */
 #ifndef _SYSINFO_H
 #define _SYSINFO_H
