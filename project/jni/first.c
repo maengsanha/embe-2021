@@ -11,11 +11,14 @@
 #include <sys/wait.h>
 #include <sys/syscall.h>
 
-#include "procinfo.h"
-
 #define FILENAME      "/data/local/tmp/output.txt"
 #define DEVICE_DRIVER "/dev/monitor"
 #define BUFSIZE       32768
+
+struct sys_info_t {
+	int user_usage;
+	int sys_usage;
+};
 
 extern char *get_process_info();
 
