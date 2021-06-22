@@ -8,8 +8,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
-#include <syscall.h>
 #include <sys/wait.h>
+#include <sys/syscall.h>
 
 #include "procinfo.h"
 
@@ -65,9 +65,6 @@ char *get_process_info() {
     };
 
     syscall(376, &info, &user_usage, &sys_usage);
-
-    printf("User: %d\n", info.user_usage);
-    printf("System: %d\n", info.sys_usage);
 
     // write to device driver
     if ((fd = open(DEVICE_DRIVER, O_WRONLY)) < 0) {
